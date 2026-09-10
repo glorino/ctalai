@@ -1,0 +1,1158 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== AUTH & USERS ====================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String?
+  role          UserRole  @default(STAFF)
+  avatar        String?
+  phone         String?
+  department    String?
+  position      String?
+  isActive      Boolean   @default(true)
+  lastLoginAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  sessions      Session[]
+  ownedCustomers Customer[]    @relation("CustomerOwner")
+  assignedLeads  Lead[]        @relation("LeadAssignee")
+  tasks          Task[]        @relation("TaskAssignee")
+  staffRecords   Staff?        @relation("StaffUser")
+  coachProfile   Coach?        @relation("CoachUser")
+
+  @@index([email])
+  @@index([role])
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  MANAGER
+  STAFF
+  TRAINER
+  COACH
+  STUDENT
+  ALUMNI
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ==================== CRM (Section 4) ====================
+
+model Customer {
+  id            String         @id @default(cuid())
+  name          String
+  email         String?
+  phone         String?
+  organisation  String?
+  customerType  CustomerType   @default(INDIVIDUAL)
+  source        String?
+  tags          String[]
+  interests     String[]
+  learningGoals String[]
+  status        CustomerStatus @default(ACTIVE)
+  ownerId       String?
+  owner         User?          @relation("CustomerOwner", fields: [ownerId], references: [id])
+  notes         String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  profiles      CustomerProfile[]
+  interactions  Interaction[]
+  enrollments   Enrollment[]
+  invoices      Invoice[]
+  feedback      Feedback[]
+  coachingSessions CoachingSession[]
+  supportTickets   SupportTicket[]
+
+  @@index([email])
+  @@index([phone])
+  @@index([customerType])
+  @@index([status])
+}
+
+enum CustomerType {
+  INDIVIDUAL
+  ORGANISATION
+  CORPORATE
+  GOVERNMENT
+  NGO
+}
+
+enum CustomerStatus {
+  LEAD
+  PROSPECT
+  ACTIVE
+  INACTIVE
+  CHURNED
+  ALUMNI
+}
+
+model CustomerProfile {
+  id              String   @id @default(cuid())
+  customerId      String
+  customer        Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  programmeHistory String[]
+  purchaseHistory  String[]
+  communicationHistory String[]
+  certificates    String[]
+  alumniStatus    Boolean  @default(false)
+  socialProfiles  Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Interaction {
+  id          String          @id @default(cuid())
+  customerId  String
+  customer    Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  type        InteractionType
+  subject     String?
+  content     String?
+  channel     String?
+  direction   InteractionDirection @default(INBOUND)
+  staffId     String?
+  createdAt   DateTime        @default(now())
+
+  @@index([customerId])
+  @@index([type])
+}
+
+enum InteractionType {
+  EMAIL
+  PHONE
+  WHATSAPP
+  MEETING
+  NOTE
+  SUPPORT_TICKET
+  FEEDBACK
+}
+
+enum InteractionDirection {
+  INBOUND
+  OUTBOUND
+}
+
+// ==================== LEAD GENERATION (Section 2) ====================
+
+model Lead {
+  id            String       @id @default(cuid())
+  name          String
+  email         String?
+  phone         String?
+  company       String?
+  source        LeadSource
+  score         Int          @default(0)
+  status        LeadStatus   @default(NEW)
+  assignedToId  String?
+  assignedTo    User?        @relation("LeadAssignee", fields: [assignedToId], references: [id])
+  campaignId    String?
+  campaign      Campaign?    @relation(fields: [campaignId], references: [id])
+  notes         String?
+  metadata      Json?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  convertedAt   DateTime?
+
+  activities    LeadActivity[]
+  opportunities Opportunity[]
+
+  @@index([email])
+  @@index([status])
+  @@index([score])
+}
+
+enum LeadSource {
+  WEBSITE
+  SOCIAL_MEDIA
+  WEBINAR
+  LANDING_PAGE
+  REFERRAL
+  ORGANIC
+  PAID_AD
+  PARTNER
+  EVENT
+  OTHER
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  PROPOSAL_SENT
+  NEGOTIATING
+  WON
+  LOST
+  UNQUALIFIED
+}
+
+model LeadActivity {
+  id        String   @id @default(cuid())
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  action    String
+  details   String?
+  createdAt DateTime @default(now())
+}
+
+// ==================== SALES & PIPELINE (Section 3) ====================
+
+model Opportunity {
+  id            String           @id @default(cuid())
+  name          String
+  value         Float?
+  currency      String           @default("NGN")
+  stage         PipelineStage    @default(QUALIFICATION)
+  probability   Int              @default(0)
+  leadId        String?
+  lead          Lead?            @relation(fields: [leadId], references: [id])
+  customerId    String?
+  expectedClose DateTime?
+  notes         String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  proposals     Proposal[]
+  activities    OpportunityActivity[]
+
+  @@index([stage])
+  @@index([customerId])
+}
+
+enum PipelineStage {
+  QUALIFICATION
+  NEEDS_ANALYSIS
+  PROPOSAL
+  NEGOTIATION
+  CLOSED_WON
+  CLOSED_LOST
+}
+
+model Proposal {
+  id            String      @id @default(cuid())
+  opportunityId String
+  opportunity   Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  title         String
+  content       String?
+  amount        Float?
+  status        ProposalStatus @default(DRAFT)
+  validUntil    DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+enum ProposalStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+model OpportunityActivity {
+  id            String      @id @default(cuid())
+  opportunityId String
+  opportunity   Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  action        String
+  details       String?
+  createdAt     DateTime    @default(now())
+}
+
+// ==================== CAMPAIGNS (Section 2) ====================
+
+model Campaign {
+  id          String        @id @default(cuid())
+  name        String
+  type        CampaignType
+  status      CampaignStatus @default(DRAFT)
+  startDate   DateTime?
+  endDate     DateTime?
+  budget      Float?
+  channel     String?
+  targetAudience String?
+  content     Json?
+  metrics     Json?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  leads       Lead[]
+  emailSequences EmailSequence[]
+}
+
+enum CampaignType {
+  EMAIL
+  WEBINAR
+  SOCIAL_MEDIA
+  PAID_AD
+  CONTENT
+  REFERRAL
+}
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+model EmailSequence {
+  id          String     @id @default(cuid())
+  campaignId  String?
+  campaign    Campaign?  @relation(fields: [campaignId], references: [id])
+  name        String
+  subject     String
+  body        String
+  delay       Int        @default(0)
+  status      SequenceStatus @default(DRAFT)
+  createdAt   DateTime   @default(now())
+}
+
+enum SequenceStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  COMPLETED
+}
+
+// ==================== TRAINING PROGRAMMES (Section 6) ====================
+
+model Program {
+  id            String         @id @default(cuid())
+  name          String
+  description   String?
+  category      String?
+  duration      String?
+  price         Float?
+  currency      String         @default("NGN")
+  capacity      Int?
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  cohorts       Cohort[]
+  enrollments   Enrollment[]
+  materials     ProgramMaterial[]
+  assessments   Assessment[]
+}
+
+model Cohort {
+  id          String    @id @default(cuid())
+  programId   String
+  program     Program   @relation(fields: [programId], references: [id])
+  name        String
+  startDate   DateTime
+  endDate     DateTime?
+  maxStudents Int?
+  status      CohortStatus @default(UPCOMING)
+  createdAt   DateTime  @default(now())
+
+  enrollments Enrollment[]
+  schedules   Schedule[]
+  attendance  Attendance[]
+
+  @@index([programId])
+}
+
+enum CohortStatus {
+  UPCOMING
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+model Schedule {
+  id        String   @id @default(cuid())
+  cohortId  String
+  cohort    Cohort   @relation(fields: [cohortId], references: [id])
+  title     String
+  date      DateTime
+  startTime String
+  endTime   String
+  trainerId String?
+  location  String?
+  isOnline  Boolean  @default(true)
+  meetingUrl String?
+  createdAt DateTime @default(now())
+}
+
+model Enrollment {
+  id          String          @id @default(cuid())
+  customerId  String
+  customer    Customer        @relation(fields: [customerId], references: [id])
+  programId   String
+  program     Program         @relation(fields: [programId], references: [id])
+  cohortId    String?
+  cohort      Cohort?         @relation(fields: [cohortId], references: [id])
+  status      EnrollmentStatus @default(ENROLLED)
+  enrolledAt  DateTime        @default(now())
+  completedAt DateTime?
+
+  progress    Json?
+  certificates String[]
+
+  @@index([customerId])
+  @@index([programId])
+}
+
+enum EnrollmentStatus {
+  ENROLLED
+  IN_PROGRESS
+  COMPLETED
+  DROPPED
+  SUSPENDED
+}
+
+model Attendance {
+  id        String   @id @default(cuid())
+  cohortId  String
+  cohort    Cohort   @relation(fields: [cohortId], references: [id])
+  studentId String
+  date      DateTime
+  status    AttendanceStatus
+  notes     String?
+  createdAt DateTime @default(now())
+
+  @@unique([cohortId, studentId, date])
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+model ProgramMaterial {
+  id        String   @id @default(cuid())
+  programId String
+  program   Program  @relation(fields: [programId], references: [id])
+  title     String
+  type      MaterialType
+  url       String?
+  content   String?
+  createdAt DateTime @default(now())
+}
+
+enum MaterialType {
+  DOCUMENT
+  VIDEO
+  AUDIO
+  LINK
+  FILE
+}
+
+model Assessment {
+  id        String   @id @default(cuid())
+  programId String
+  program   Program  @relation(fields: [programId], references: [id])
+  title     String
+  type      AssessmentType
+  questions Json?
+  maxScore  Int?
+  createdAt DateTime @default(now())
+}
+
+enum AssessmentType {
+  QUIZ
+  ASSIGNMENT
+  EXAM
+  PROJECT
+}
+
+// ==================== SUPPORT (Section 7) ====================
+
+model SupportTicket {
+  id          String         @id @default(cuid())
+  customerId  String
+  customer    Customer       @relation(fields: [customerId], references: [id])
+  subject     String
+  description String?
+  category    TicketCategory
+  priority    TicketPriority @default(MEDIUM)
+  status      TicketStatus   @default(OPEN)
+  assignedTo  String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  resolvedAt  DateTime?
+
+  responses   TicketResponse[]
+
+  @@index([status])
+  @@index([priority])
+}
+
+enum TicketCategory {
+  PROGRAMME
+  PAYMENT
+  REGISTRATION
+  SCHEDULE
+  CERTIFICATE
+  TECHNICAL
+  GENERAL
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING
+  RESOLVED
+  CLOSED
+}
+
+model TicketResponse {
+  id        String         @id @default(cuid())
+  ticketId  String
+  ticket    SupportTicket  @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  message   String
+  isStaff   Boolean        @default(false)
+  createdAt DateTime       @default(now())
+}
+
+// ==================== FAQ / KNOWLEDGE BASE ====================
+
+model FAQ {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String
+  category  String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model KnowledgeBase {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  category  String?
+  tags      String[]
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ==================== COACHING (Section 8) ====================
+
+model Coach {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation("CoachUser", fields: [userId], references: [id])
+  speciality  String[]
+  bio         String?
+  isAvailable Boolean  @default(true)
+  maxClients  Int      @default(10)
+  createdAt   DateTime @default(now())
+
+  sessions    CoachingSession[]
+}
+
+model CoachingSession {
+  id          String        @id @default(cuid())
+  customerId  String
+  customer    Customer      @relation(fields: [customerId], references: [id])
+  coachId     String?
+  coach       Coach?        @relation(fields: [coachId], references: [id])
+  scheduledAt DateTime
+  duration    Int           @default(60)
+  status      SessionStatus @default(SCHEDULED)
+  notes       String?
+  actionPlan  Json?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([customerId])
+  @@index([coachId])
+}
+
+enum SessionStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+// ==================== ALUMNI (Section 9) ====================
+
+model Alumni {
+  id            String    @id @default(cuid())
+  customerId    String    @unique
+  graduationYear Int?
+  programme     String?
+  currentRole   String?
+  company       String?
+  skills        String[]
+  achievements  String[]
+  isAvailableForMentoring Boolean @default(false)
+  isAvailableForPartnership Boolean @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  opportunities AlumniOpportunity[]
+  connections   AlumniConnection[]
+}
+
+model AlumniOpportunity {
+  id         String   @id @default(cuid())
+  alumniId   String
+  alumni     Alumni   @relation(fields: [alumniId], references: [id])
+  type       OpportunityType
+  title      String
+  description String?
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+}
+
+enum OpportunityType {
+  JOB
+  PARTNERSHIP
+  COLLABORATION
+  REFERRAL
+  MENTORING
+}
+
+model AlumniConnection {
+  id        String   @id @default(cuid())
+  alumniId  String
+  alumni    Alumni   @relation(fields: [alumniId], references: [id])
+  connectedToId String
+  type      String
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+}
+
+// ==================== FINANCE (Section 14) ====================
+
+model Invoice {
+  id            String        @id @default(cuid())
+  invoiceNumber String        @unique
+  customerId    String
+  customer      Customer      @relation(fields: [customerId], references: [id])
+  amount        Float
+  tax           Float         @default(0)
+  discount      Float         @default(0)
+  total         Float
+  currency      String        @default("NGN")
+  status        InvoiceStatus @default(DRAFT)
+  dueDate       DateTime?
+  paidAt        DateTime?
+  notes         String?
+  items         Json?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  payments      Payment[]
+
+  @@index([customerId])
+  @@index([status])
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  VIEWED
+  PAID
+  PARTIALLY_PAID
+  OVERDUE
+  CANCELLED
+}
+
+model Payment {
+  id          String        @id @default(cuid())
+  invoiceId   String
+  invoice     Invoice       @relation(fields: [invoiceId], references: [id])
+  amount      Float
+  method      PaymentMethod
+  reference   String?
+  status      PaymentStatus @default(PENDING)
+  paidAt      DateTime?
+  createdAt   DateTime      @default(now())
+
+  @@index([invoiceId])
+}
+
+enum PaymentMethod {
+  BANK_TRANSFER
+  CARD
+  PAYSTACK
+  CASH
+  OTHER
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESSFUL
+  FAILED
+  REFUNDED
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  category    String
+  description String
+  amount      Float
+  currency    String   @default("NGN")
+  date        DateTime
+  receipt     String?
+  approvedBy  String?
+  createdAt   DateTime @default(now())
+
+  @@index([category])
+  @@index([date])
+}
+
+// ==================== HR (Section 15) ====================
+
+model Staff {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation("StaffUser", fields: [userId], references: [id])
+  employeeId  String   @unique
+  department  String
+  position    String
+  hireDate    DateTime
+  salary      Float?
+  currency    String   @default("NGN")
+  employmentType EmploymentType @default(FULL_TIME)
+  status      StaffStatus @default(ACTIVE)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  performances Performance[]
+  leaveRequests LeaveRequest[]
+  kpis         KPI[]
+
+  @@index([department])
+  @@index([status])
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERN
+}
+
+enum StaffStatus {
+  ACTIVE
+  ON_LEAVE
+  SUSPENDED
+  TERMINATED
+}
+
+model Performance {
+  id        String   @id @default(cuid())
+  staffId   String
+  staff     Staff    @relation(fields: [staffId], references: [id])
+  period    String
+  rating    Int?
+  goals     Json?
+  feedback  String?
+  reviewedBy String?
+  createdAt DateTime @default(now())
+
+  @@index([staffId])
+}
+
+model LeaveRequest {
+  id        String      @id @default(cuid())
+  staffId   String
+  staff     Staff       @relation(fields: [staffId], references: [id])
+  type      LeaveType
+  startDate DateTime
+  endDate   DateTime
+  reason    String?
+  status    LeaveStatus @default(PENDING)
+  approvedBy String?
+  createdAt DateTime    @default(now())
+
+  @@index([staffId])
+  @@index([status])
+}
+
+enum LeaveType {
+  ANNUAL
+  SICK
+  MATERNITY
+  PATERNITY
+  STUDY
+  UNPAID
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model KPI {
+  id        String   @id @default(cuid())
+  staffId   String
+  staff     Staff    @relation(fields: [staffId], references: [id])
+  name      String
+  target    Float
+  current   Float    @default(0)
+  period    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([staffId])
+}
+
+// ==================== PROJECTS (Section 16) ====================
+
+model Project {
+  id          String        @id @default(cuid())
+  name        String
+  description String?
+  status      ProjectStatus @default(PLANNING)
+  startDate   DateTime?
+  endDate     DateTime?
+  budget      Float?
+  spent       Float         @default(0)
+  progress    Int           @default(0)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  tasks       Task[]
+  milestones  Milestone[]
+  risks       Risk[]
+
+  @@index([status])
+}
+
+enum ProjectStatus {
+  PLANNING
+  ACTIVE
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+}
+
+model Task {
+  id          String     @id @default(cuid())
+  projectId   String
+  project     Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  status      TaskStatus @default(TODO)
+  priority    TaskPriority @default(MEDIUM)
+  assignedToId String?
+  assignedTo  User?      @relation("TaskAssignee", fields: [assignedToId], references: [id])
+  dueDate     DateTime?
+  completedAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([projectId])
+  @@index([status])
+  @@index([assignedToId])
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  DONE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model Milestone {
+  id          String   @id @default(cuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name        String
+  dueDate     DateTime?
+  isCompleted Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model Risk {
+  id          String      @id @default(cuid())
+  projectId   String
+  project     Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  impact      RiskImpact  @default(MEDIUM)
+  probability RiskProbability @default(MEDIUM)
+  status      RiskStatus  @default(OPEN)
+  mitigation  String?
+  createdAt   DateTime    @default(now())
+}
+
+enum RiskImpact {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum RiskProbability {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum RiskStatus {
+  OPEN
+  MITIGATED
+  CLOSED
+}
+
+// ==================== CONTENT (Section 12) ====================
+
+model Content {
+  id          String        @id @default(cuid())
+  title       String
+  type        ContentType
+  body        String?
+  url         String?
+  tags        String[]
+  status      ContentStatus @default(DRAFT)
+  publishedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([type])
+  @@index([status])
+}
+
+enum ContentType {
+  ARTICLE
+  SOCIAL_POST
+  EMAIL
+  FAQ
+  VIDEO
+  WEBINAR
+  PODCAST
+}
+
+enum ContentStatus {
+  DRAFT
+  REVIEW
+  APPROVED
+  PUBLISHED
+  ARCHIVED
+}
+
+// ==================== FEEDBACK (Section 11) ====================
+
+model Feedback {
+  id          String    @id @default(cuid())
+  customerId  String
+  customer    Customer  @relation(fields: [customerId], references: [id])
+  type        FeedbackType
+  rating      Int?
+  comment     String?
+  sentiment   Sentiment?
+  analysedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([type])
+  @@index([rating])
+}
+
+enum FeedbackType {
+  PROGRAMME
+  COACHING
+  MENTORING
+  CONSULTING
+  EVENT
+  GENERAL
+}
+
+enum Sentiment {
+  POSITIVE
+  NEUTRAL
+  NEGATIVE
+}
+
+// ==================== AI AGENTS (Section 23) ====================
+
+model AIAgent {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  type        AgentType
+  description String?
+  config      Json?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  logs        AgentLog[]
+  actions     AgentAction[]
+}
+
+enum AgentType {
+  GROWTH
+  CUSTOMER_SUCCESS
+  LEARNING
+  COMMUNITY
+  OPERATIONS
+  FINANCE
+  PEOPLE
+  CEO_INTELLIGENCE
+}
+
+model AgentLog {
+  id        String   @id @default(cuid())
+  agentId   String
+  agent     AIAgent  @relation(fields: [agentId], references: [id])
+  action    String
+  input     Json?
+  output    Json?
+  tokenUsage Int?
+  duration  Int?
+  status    LogStatus @default(SUCCESS)
+  createdAt DateTime @default(now())
+
+  @@index([agentId])
+  @@index([createdAt])
+}
+
+enum LogStatus {
+  SUCCESS
+  ERROR
+  TIMEOUT
+}
+
+model AgentAction {
+  id          String       @id @default(cuid())
+  agentId     String
+  agent       AIAgent      @relation(fields: [agentId], references: [id])
+  type        String
+  targetType  String?
+  targetId    String?
+  data        Json?
+  status      ActionStatus @default(PENDING)
+  createdAt   DateTime     @default(now())
+  completedAt DateTime?
+}
+
+enum ActionStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+// ==================== PARTNERSHIPS (Section 19) ====================
+
+model Partner {
+  id          String    @id @default(cuid())
+  name        String
+  contactName String?
+  email       String?
+  phone       String?
+  type        PartnerType
+  status      PartnerStatus @default(ACTIVE)
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  agreements  PartnershipAgreement[]
+  meetings    PartnerMeeting[]
+}
+
+enum PartnerType {
+  CORPORATE
+  NGO
+  GOVERNMENT
+  ACADEMIC
+  OTHER
+}
+
+enum PartnerStatus {
+  PROSPECT
+  ACTIVE
+  INACTIVE
+  TERMINATED
+}
+
+model PartnershipAgreement {
+  id          String    @id @default(cuid())
+  partnerId   String
+  partner     Partner   @relation(fields: [partnerId], references: [id])
+  title       String
+  startDate   DateTime
+  endDate     DateTime?
+  value       Float?
+  status      AgreementStatus @default(ACTIVE)
+  deliverables Json?
+  createdAt   DateTime  @default(now())
+}
+
+enum AgreementStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  TERMINATED
+}
+
+model PartnerMeeting {
+  id        String   @id @default(cuid())
+  partnerId String
+  partner   Partner  @relation(fields: [partnerId], references: [id])
+  title     String
+  date      DateTime
+  notes     String?
+  outcomes  String?
+  createdAt DateTime @default(now())
+}
+
+// ==================== SOPs (Section 20) ====================
+
+model SOP {
+  id          String    @id @default(cuid())
+  title       String
+  category    String
+  content     String
+  version     Int       @default(1)
+  isActive    Boolean   @default(true)
+  approvedBy  String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([category])
+}
+
+// ==================== SYSTEM CONFIG ====================
+
+model SystemConfig {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+  type  String @default("string")
+  updatedAt DateTime @updatedAt
+}
