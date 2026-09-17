@@ -400,7 +400,7 @@ export default function Agents() {
 
         {/* Footer note */}
         <div className="text-center mt-12">
-          <p className="text-sm text-white/30">
+          <p className="text-sm text-text-muted">
             Click any agent to view details and activate
           </p>
         </div>

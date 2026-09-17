@@ -8,54 +8,134 @@ import {
   GraduationCap,
   ArrowUpRight,
   ArrowDownRight,
-  Activity,
   Target,
-  Briefcase,
+  Headphones,
+  Sparkles,
+  Calendar,
+  Search,
+  Bell,
+  MoreHorizontal,
+  Bot,
+  Brain,
+  ChevronRight,
   Clock,
+  AlertTriangle,
+  CheckCircle2,
+  Zap,
 } from 'lucide-react'
-import Card from '@/components/ui/card'
+import { staggerContainer, staggerItem } from '@/lib/motion'
+import { cn } from '@/lib/utils'
+import Button from '@/components/ui/button'
+import Badge from '@/components/ui/badge'
+import AIInsight from '@/components/ui/ai-insight'
 
-const stats = [
+const kpis = [
   {
-    title: 'Total Customers',
-    value: '2,847',
-    change: '+12.5%',
-    trend: 'up',
+    title: 'TOTAL CUSTOMERS',
+    value: '2,481',
+    change: '+12.8%',
+    changeType: 'up' as const,
+    vs: 'vs last month',
     icon: Users,
     color: 'primary',
+    sparkline: [40, 45, 42, 50, 48, 55, 60, 58, 65, 70, 72, 78],
   },
   {
-    title: 'Revenue',
-    value: '₦12.4M',
-    change: '+8.2%',
-    trend: 'up',
-    icon: DollarSign,
-    color: 'success',
-  },
-  {
-    title: 'Active Programmes',
-    value: '24',
-    change: '+3',
-    trend: 'up',
-    icon: GraduationCap,
+    title: 'ACTIVE LEADS',
+    value: '847',
+    change: '+18.4%',
+    changeType: 'up' as const,
+    vs: 'vs last month',
+    icon: Target,
     color: 'secondary',
+    sparkline: [20, 25, 30, 28, 35, 40, 38, 45, 50, 55, 58, 62],
   },
   {
-    title: 'Conversion Rate',
+    title: 'CONVERSION RATE',
     value: '34.2%',
     change: '+2.1%',
-    trend: 'up',
-    icon: Target,
+    changeType: 'up' as const,
+    vs: 'vs last month',
+    icon: TrendingUp,
+    color: 'success',
+    sparkline: [25, 28, 26, 30, 29, 32, 31, 33, 34, 33, 35, 34],
+  },
+  {
+    title: 'REVENUE',
+    value: '₦24.8M',
+    change: '+18.4%',
+    changeType: 'up' as const,
+    vs: 'vs last month',
+    icon: DollarSign,
     color: 'warning',
+    sparkline: [30, 35, 32, 38, 42, 40, 45, 48, 50, 55, 58, 62],
+  },
+  {
+    title: 'ACTIVE PROGRAMMES',
+    value: '24',
+    change: '+3',
+    changeType: 'up' as const,
+    vs: 'vs last month',
+    icon: GraduationCap,
+    color: 'primary',
+    sparkline: [15, 16, 18, 17, 19, 20, 21, 20, 22, 23, 24, 24],
+  },
+  {
+    title: 'CUSTOMER SATISFACTION',
+    value: '4.8/5',
+    change: '+0.2',
+    changeType: 'up' as const,
+    vs: 'vs last month',
+    icon: Headphones,
+    color: 'success',
+    sparkline: [40, 42, 41, 43, 44, 43, 45, 46, 47, 48, 48, 48],
   },
 ]
 
+const colorMap = {
+  primary: { bg: 'bg-primary/8', text: 'text-primary', bar: 'from-primary to-primary-light' },
+  secondary: { bg: 'bg-secondary/8', text: 'text-secondary', bar: 'from-secondary to-secondary-light' },
+  success: { bg: 'bg-emerald-50', text: 'text-emerald-600', bar: 'from-emerald-500 to-emerald-400' },
+  warning: { bg: 'bg-amber-50', text: 'text-amber-600', bar: 'from-amber-500 to-amber-400' },
+}
+
+function MiniSparkline({ data, color }: { data: number[]; color: string }) {
+  const max = Math.max(...data)
+  const min = Math.min(...data)
+  const range = max - min || 1
+  const h = 32
+  const w = 80
+  const points = data.map((v, i) => `${(i / (data.length - 1)) * w},${h - ((v - min) / range) * h}`).join(' ')
+
+  return (
+    <svg width={w} height={h} className="shrink-0">
+      <defs>
+        <linearGradient id={`spark-${color}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.2" />
+          <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <polyline fill="none" stroke="var(--primary)" strokeWidth="1.5" points={points} opacity="0.6" />
+      <polygon
+        fill={`url(#spark-${color})`}
+        points={`0,${h} ${points} ${w},${h}`}
+      />
+    </svg>
+  )
+}
+
 const recentActivities = [
-  { id: 1, type: 'lead', message: 'New lead captured from webinar', time: '2 min ago' },
-  { id: 2, type: 'enrollment', message: 'Sarah enrolled in Digital Marketing', time: '15 min ago' },
-  { id: 3, type: 'payment', message: 'Payment received from Tech Corp', time: '1 hour ago' },
-  { id: 4, type: 'support', message: 'Ticket #1234 resolved', time: '2 hours ago' },
-  { id: 5, type: 'coaching', message: 'Coaching session completed', time: '3 hours ago' },
+  { id: 1, type: 'lead', message: 'New lead captured from webinar: TechStart Nigeria', time: '2 min ago', icon: Target },
+  { id: 2, type: 'enrollment', message: 'Sarah enrolled in Advanced Valuation Programme', time: '15 min ago', icon: GraduationCap },
+  { id: 3, type: 'payment', message: 'Payment received: ₦125,000 from Tech Corp', time: '1 hour ago', icon: DollarSign },
+  { id: 4, type: 'support', message: 'Ticket #1234 resolved by Agent Chioma', time: '2 hours ago', icon: CheckCircle2 },
+  { id: 5, type: 'coaching', message: 'Coaching session completed with Adebayo', time: '3 hours ago', icon: Brain },
+]
+
+const priorityActions = [
+  { id: 1, action: 'Follow up with 8 high-value leads', priority: 'high', icon: Target },
+  { id: 2, action: 'Review declining engagement in Advanced Valuation Cohort', priority: 'medium', icon: AlertTriangle },
+  { id: 3, action: 'Approve 2 pending partnership proposals', priority: 'medium', icon: CheckCircle2 },
 ]
 
 const upcomingTasks = [
@@ -65,227 +145,241 @@ const upcomingTasks = [
   { id: 4, task: 'Team meeting preparation', priority: 'low', due: 'In 5 days' },
 ]
 
-export default function DashboardPage() {
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold font-[family-name:var(--font-space-grotesk)]">
-          Welcome back, John
-        </h1>
-        <p className="text-text-muted">
-          Here&apos;s what&apos;s happening with your business today.
-        </p>
-      </div>
+const topLeads = [
+  { name: 'TechStart Nigeria', source: 'Webinar', score: 87, value: '₦2.4M' },
+  { name: 'Lagos Business School', source: 'Referral', score: 82, value: '₦1.8M' },
+  { name: 'Green Energy Co', source: 'Website', score: 76, value: '₦950K' },
+]
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat, index) => (
-          <motion.div
-            key={stat.title}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-          >
-            <Card className="relative overflow-hidden">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-text-muted text-sm">{stat.title}</p>
-                  <p className="text-2xl font-bold mt-1">{stat.value}</p>
-                  <div className="flex items-center gap-1 mt-2">
-                    {stat.trend === 'up' ? (
-                      <ArrowUpRight className="w-4 h-4 text-success" />
-                    ) : (
-                      <ArrowDownRight className="w-4 h-4 text-error" />
-                    )}
-                    <span
-                      className={`text-sm ${
-                        stat.trend === 'up' ? 'text-success' : 'text-error'
-                      }`}
-                    >
-                      {stat.change}
-                    </span>
-                    <span className="text-text-muted text-sm">vs last month</span>
-                  </div>
-                </div>
-                <div
-                  className={`p-3 rounded-xl ${
-                    stat.color === 'primary'
-                      ? 'bg-primary/10'
-                      : stat.color === 'success'
-                      ? 'bg-success/10'
-                      : stat.color === 'secondary'
-                      ? 'bg-secondary/10'
-                      : 'bg-warning/10'
-                  }`}
-                >
-                  <stat.icon
-                    className={`w-6 h-6 ${
-                      stat.color === 'primary'
-                        ? 'text-primary'
-                        : stat.color === 'success'
-                        ? 'text-success'
-                        : stat.color === 'secondary'
-                        ? 'text-secondary'
-                        : 'text-warning'
-                    }`}
-                  />
+const programmes = [
+  { name: 'Advanced Valuation', cohort: 'Cohort 7', enrolled: 32, completion: 78 },
+  { name: 'Digital Marketing', cohort: 'Cohort 12', enrolled: 45, completion: 92 },
+  { name: 'Leadership Academy', cohort: 'Cohort 3', enrolled: 28, completion: 65 },
+]
+
+const agentStatus = [
+  { name: 'Growth Agent', status: 'active', tasks: 147, success: 94.2 },
+  { name: 'Customer Success', status: 'active', tasks: 89, success: 91.8 },
+  { name: 'Learning Agent', status: 'active', tasks: 124, success: 96.1 },
+  { name: 'Finance Agent', status: 'active', tasks: 56, success: 98.5 },
+]
+
+export default function DashboardPage() {
+  const today = new Date().toLocaleDateString('en-NG', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+
+  return (
+    <motion.div
+      variants={staggerContainer}
+      initial="hidden"
+      animate="visible"
+      className="space-y-6"
+    >
+      {/* Header */}
+      <motion.div variants={staggerItem} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Good morning, John</h1>
+          <p className="text-sm text-text-muted mt-0.5">Here&apos;s what is happening across CTAL today.</p>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-text-muted">
+          <Calendar className="w-4 h-4" />
+          {today}
+        </div>
+      </motion.div>
+
+      {/* KPI Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {kpis.map((kpi, i) => {
+          const colors = colorMap[kpi.color as keyof typeof colorMap] || colorMap.primary
+          return (
+            <motion.div
+              key={kpi.title}
+              variants={staggerItem}
+              className="card bg-surface border border-border rounded-2xl p-5 relative overflow-hidden group hover:border-primary/15 transition-colors"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">{kpi.title}</p>
+                <div className={cn('p-2 rounded-xl', colors.bg)}>
+                  <kpi.icon className={cn('w-4 h-4', colors.text)} />
                 </div>
               </div>
-              {/* Decorative gradient */}
-              <div
-                className={`absolute bottom-0 left-0 right-0 h-1 ${
-                  stat.color === 'primary'
-                    ? 'bg-gradient-to-r from-primary to-primary-light'
-                    : stat.color === 'success'
-                    ? 'bg-gradient-to-r from-success to-emerald-400'
-                    : stat.color === 'secondary'
-                    ? 'bg-gradient-to-r from-secondary to-secondary-light'
-                    : 'bg-gradient-to-r from-warning to-amber-400'
-                }`}
-              />
-            </Card>
-          </motion.div>
-        ))}
+              <div className="flex items-end justify-between">
+                <div>
+                  <p className="text-2xl font-bold tracking-tight">{kpi.value}</p>
+                  <div className="flex items-center gap-1.5 mt-1.5">
+                    <span className="text-xs font-medium text-emerald-600 flex items-center gap-0.5">
+                      <ArrowUpRight className="w-3 h-3" />{kpi.change}
+                    </span>
+                    <span className="text-xs text-text-muted">{kpi.vs}</span>
+                  </div>
+                </div>
+                <MiniSparkline data={kpi.sparkline} color={kpi.color} />
+              </div>
+              <div className={cn('absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r', colors.bar, 'opacity-0 group-hover:opacity-100 transition-opacity')} />
+            </motion.div>
+          )
+        })}
       </div>
+
+      {/* AI Executive Briefing */}
+      <motion.div variants={staggerItem}>
+        <AIInsight title="AI Executive Briefing">
+          <p className="leading-relaxed">
+            CTAL had a strong week. Lead volume increased by <strong>18%</strong>, while conversion improved by <strong>6.2%</strong>. 
+            Three high-value opportunities require follow-up today. Revenue is trending upward with ₦4.2M collected this week.
+          </p>
+          <div className="mt-4 space-y-2">
+            {priorityActions.map((pa) => (
+              <div key={pa.id} className="flex items-center gap-3 p-2.5 rounded-lg bg-white/60 border border-white/80">
+                <pa.icon className="w-4 h-4 text-primary shrink-0" />
+                <span className="text-sm flex-1">{pa.action}</span>
+                <Badge variant={pa.priority === 'high' ? 'error' : 'warning'} size="sm">{pa.priority}</Badge>
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center gap-2 mt-4">
+            <Button size="sm" variant="outline">Review Actions</Button>
+            <Button size="sm">Ask AI</Button>
+          </div>
+        </AIInsight>
+      </motion.div>
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Activity Feed */}
-        <div className="lg:col-span-2">
-          <Card>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <Activity className="w-5 h-5 text-primary" />
-                Recent Activity
-              </h2>
-              <button className="text-sm text-primary hover:text-primary-light transition-colors">
-                View All
-              </button>
+        <motion.div variants={staggerItem} className="lg:col-span-2">
+          <div className="card bg-surface border border-border rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-sm font-semibold">Recent Activity</h2>
+              <button className="text-xs text-primary hover:text-primary-dark transition-colors">View all</button>
             </div>
-            <div className="space-y-4">
-              {recentActivities.map((activity, index) => (
-                <motion.div
-                  key={activity.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="flex items-start gap-3 p-3 rounded-lg hover:bg-surface-light transition-colors"
-                >
-                  <div
-                    className={`w-2 h-2 rounded-full mt-2 ${
-                      activity.type === 'lead'
-                        ? 'bg-primary'
-                        : activity.type === 'enrollment'
-                        ? 'bg-success'
-                        : activity.type === 'payment'
-                        ? 'bg-warning'
-                        : 'bg-secondary'
-                    }`}
-                  />
-                  <div className="flex-1">
-                    <p className="text-sm">{activity.message}</p>
-                    <p className="text-xs text-text-muted mt-1">{activity.time}</p>
+            <div className="space-y-0">
+              {recentActivities.map((a, i) => (
+                <div key={a.id} className="flex items-start gap-3 py-3 group">
+                  <div className="flex flex-col items-center">
+                    <div className={cn('w-2 h-2 rounded-full mt-1.5 shrink-0', {
+                      'bg-primary': a.type === 'lead',
+                      'bg-emerald-500': a.type === 'enrollment' || a.type === 'support',
+                      'bg-amber-500': a.type === 'payment',
+                      'bg-secondary': a.type === 'coaching',
+                    })} />
+                    {i < recentActivities.length - 1 && <div className="w-px flex-1 bg-border mt-1" />}
                   </div>
-                </motion.div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm leading-snug">{a.message}</p>
+                    <p className="text-xs text-text-muted mt-0.5">{a.time}</p>
+                  </div>
+                </div>
               ))}
             </div>
-          </Card>
-        </div>
+          </div>
+        </motion.div>
 
         {/* Upcoming Tasks */}
-        <div>
-          <Card>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <Clock className="w-5 h-5 text-secondary" />
+        <motion.div variants={staggerItem}>
+          <div className="card bg-surface border border-border rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-sm font-semibold flex items-center gap-2">
+                <Clock className="w-4 h-4 text-text-muted" />
                 Upcoming Tasks
               </h2>
-              <button className="text-sm text-primary hover:text-primary-light transition-colors">
-                View All
-              </button>
+              <button className="text-xs text-primary hover:text-primary-dark transition-colors">View all</button>
             </div>
-            <div className="space-y-3">
-              {upcomingTasks.map((task, index) => (
-                <motion.div
-                  key={task.id}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="p-3 rounded-lg bg-surface-light"
-                >
-                  <div className="flex items-start justify-between">
-                    <p className="text-sm">{task.task}</p>
-                    <span
-                      className={`text-xs px-2 py-1 rounded-full ${
-                        task.priority === 'high'
-                          ? 'bg-error/20 text-error'
-                          : task.priority === 'medium'
-                          ? 'bg-warning/20 text-warning'
-                          : 'bg-success/20 text-success'
-                      }`}
-                    >
+            <div className="space-y-2">
+              {upcomingTasks.map((task) => (
+                <div key={task.id} className="p-3 rounded-xl bg-surface-light border border-border-light hover:border-border transition-colors">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-sm leading-snug">{task.task}</p>
+                    <Badge variant={task.priority === 'high' ? 'error' : task.priority === 'medium' ? 'warning' : 'neutral'} size="sm">
                       {task.priority}
-                    </span>
+                    </Badge>
                   </div>
-                  <p className="text-xs text-text-muted mt-2">Due: {task.due}</p>
-                </motion.div>
+                  <p className="text-xs text-text-muted mt-1.5">Due: {task.due}</p>
+                </div>
               ))}
             </div>
-          </Card>
-        </div>
+          </div>
+        </motion.div>
       </div>
 
-      {/* Quick Actions */}
-      <Card>
-        <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {[
-            { label: 'Add Customer', icon: Users, href: '/dashboard/crm/new' },
-            { label: 'Create Lead', icon: Target, href: '/dashboard/leads/new' },
-            { label: 'New Programme', icon: GraduationCap, href: '/dashboard/programs/new' },
-            { label: 'Generate Invoice', icon: DollarSign, href: '/dashboard/finance/invoices/new' },
-          ].map((action) => (
-            <a
-              key={action.label}
-              href={action.href}
-              className="flex items-center gap-3 p-4 rounded-xl bg-surface-light hover:bg-primary/10 transition-all duration-200 group"
-            >
-              <action.icon className="w-5 h-5 text-text-muted group-hover:text-primary transition-colors" />
-              <span className="text-sm text-text-muted group-hover:text-white transition-colors">
-                {action.label}
-              </span>
-            </a>
-          ))}
-        </div>
-      </Card>
-
-      {/* AI Agent Status */}
-      <Card>
-        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Briefcase className="w-5 h-5 text-primary" />
-          AI Agent Status
-        </h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { name: 'Growth Agent', status: 'active', tasks: 12 },
-            { name: 'Customer Success', status: 'active', tasks: 8 },
-            { name: 'Learning Agent', status: 'active', tasks: 15 },
-            { name: 'Finance Agent', status: 'active', tasks: 6 },
-          ].map((agent) => (
-            <div
-              key={agent.name}
-              className="p-4 rounded-xl bg-surface-light text-center"
-            >
-              <div className="w-3 h-3 rounded-full bg-success mx-auto mb-2 animate-pulse" />
-              <p className="text-sm font-medium">{agent.name}</p>
-              <p className="text-xs text-text-muted mt-1">
-                {agent.tasks} tasks running
-              </p>
+      {/* Second Row: Top Leads, Active Programmes, Agent Status */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Top Leads */}
+        <motion.div variants={staggerItem}>
+          <div className="card bg-surface border border-border rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-sm font-semibold">Top Leads</h2>
+              <button className="text-xs text-primary hover:text-primary-dark">View all</button>
             </div>
-          ))}
-        </div>
-      </Card>
-    </div>
+            <div className="space-y-3">
+              {topLeads.map((lead, i) => (
+                <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-surface-light">
+                  <div>
+                    <p className="text-sm font-medium">{lead.name}</p>
+                    <p className="text-xs text-text-muted mt-0.5">{lead.source}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold">{lead.value}</p>
+                    <p className="text-xs text-text-muted">Score: {lead.score}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Active Programmes */}
+        <motion.div variants={staggerItem}>
+          <div className="card bg-surface border border-border rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-sm font-semibold">Active Programmes</h2>
+              <button className="text-xs text-primary hover:text-primary-dark">View all</button>
+            </div>
+            <div className="space-y-3">
+              {programmes.map((prog, i) => (
+                <div key={i} className="p-3 rounded-xl bg-surface-light">
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <p className="text-sm font-medium">{prog.name}</p>
+                      <p className="text-xs text-text-muted">{prog.cohort} • {prog.enrolled} enrolled</p>
+                    </div>
+                    <span className="text-sm font-semibold text-primary">{prog.completion}%</span>
+                  </div>
+                  <div className="w-full h-1.5 rounded-full bg-border">
+                    <div className="h-full rounded-full bg-primary" style={{ width: `${prog.completion}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* AI Agent Status */}
+        <motion.div variants={staggerItem}>
+          <div className="card bg-surface border border-border rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-sm font-semibold flex items-center gap-2">
+                <Bot className="w-4 h-4 text-primary" />
+                AI Agents
+              </h2>
+              <button className="text-xs text-primary hover:text-primary-dark">View all</button>
+            </div>
+            <div className="space-y-2">
+              {agentStatus.map((agent) => (
+                <div key={agent.name} className="flex items-center justify-between p-3 rounded-xl bg-surface-light">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-ai-pulse" />
+                    <div>
+                      <p className="text-sm font-medium">{agent.name}</p>
+                      <p className="text-xs text-text-muted">{agent.tasks} tasks today</p>
+                    </div>
+                  </div>
+                  <span className="text-xs font-medium text-emerald-600">{agent.success}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </motion.div>
   )
 }

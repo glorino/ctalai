@@ -1,756 +1,209 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useState } from 'react'
+import { motion } from 'framer-motion'
 import {
+  Target,
   Plus,
   Search,
   Filter,
-  Target,
-  TrendingUp,
-  Users,
-  DollarSign,
-  Calendar,
+  MoreHorizontal,
   ArrowUpRight,
   ArrowDownRight,
-  GripVertical,
-  ChevronDown,
-  X,
-  Star,
+  Flame,
+  Thermometer,
+  Snowflake,
+  Sparkles,
+  Kanban,
+  Table2,
+  BarChart3,
+  TrendingUp,
+  User,
   Mail,
   Phone,
-  Building2,
-  Tag,
+  Clock,
 } from 'lucide-react'
-import Card from '@/components/ui/card'
+import { staggerContainer, staggerItem } from '@/lib/motion'
+import { cn } from '@/lib/utils'
+import { PageHeader, StatCard } from '@/components/ui/card'
+import Badge from '@/components/ui/badge'
+import Button from '@/components/ui/button'
+import Avatar from '@/components/ui/avatar'
+import DataTable, { Column } from '@/components/ui/data-table'
+import Tabs from '@/components/ui/tabs'
+import KanbanBoard from '@/components/ui/kanban-board'
+import Dropdown from '@/components/ui/dropdown'
+import AIInsight from '@/components/ui/ai-insight'
 
-type Stage = 'new' | 'contacted' | 'qualified' | 'proposal_sent' | 'negotiating' | 'won' | 'lost'
+const leads = [
+  { id: '1', name: 'TechStart Nigeria', email: 'contact@techstart.ng', phone: '+234 801 234 5678', source: 'WEBINAR', score: 87, status: 'QUALIFIED', value: '₦2.4M', owner: 'Chioma', lastActivity: '2 hours ago', nextAction: 'Send proposal' },
+  { id: '2', name: 'Lagos Business School', email: 'partnerships@lbs.edu.ng', phone: '+234 802 345 6789', source: 'REFERRAL', score: 82, status: 'CONTACTED', value: '₦1.8M', owner: 'Emeka', lastActivity: '1 day ago', nextAction: 'Follow up call' },
+  { id: '3', name: 'Green Energy Co', email: 'info@greenenergy.ng', phone: '+234 803 456 7890', source: 'WEBSITE', score: 76, status: 'NEW', value: '₦950K', owner: 'Chioma', lastActivity: '3 hours ago', nextAction: 'Qualify lead' },
+  { id: '4', name: 'FinEdge Solutions', email: 'hello@finedge.ng', phone: '+234 804 567 8901', source: 'PAID_AD', score: 65, status: 'NEW', value: '₦1.2M', owner: 'Emeka', lastActivity: '5 hours ago', nextAction: 'Send brochure' },
+  { id: '5', name: 'EduVentures Africa', email: 'team@eduventures.africa', phone: '+234 805 678 9012', source: 'SOCIAL_MEDIA', score: 58, status: 'QUALIFICATION', value: '₦780K', owner: 'Chioma', lastActivity: '1 day ago', nextAction: 'Discovery call' },
+  { id: '6', name: 'Meridian Holdings', email: 'info@meridian.ng', phone: '+234 806 789 0123', source: 'PARTNER', score: 91, status: 'PROPOSAL_SENT', value: '₦3.5M', owner: 'Emeka', lastActivity: '4 hours ago', nextAction: 'Follow up on proposal' },
+  { id: '7', name: 'Nigerian Ports Authority', email: 'training@npa.gov.ng', phone: '+234 807 890 1234', source: 'EVENT', score: 72, status: 'NEGOTIATING', value: '₦4.2M', owner: 'Chioma', lastActivity: '2 days ago', nextAction: 'Final negotiation' },
+  { id: '8', name: 'DataVault Analytics', email: 'sales@datavault.ng', phone: '+234 808 901 2345', source: 'LANDING_PAGE', score: 54, status: 'NEW', value: '₦620K', owner: 'Emeka', lastActivity: '6 hours ago', nextAction: 'Qualify lead' },
+]
 
-interface Lead {
-  id: string
-  name: string
-  company: string
-  email: string
-  phone: string
-  score: number
-  source: 'web' | 'referral' | 'social' | 'cold_outreach' | 'event' | 'organic'
-  status: Stage
-  value: number
-  assignedTo: string
-  createdAt: string
-  lastActivity: string
-  tags: string[]
+const scoreVariant: Record<number, 'error' | 'warning' | 'neutral'> = {
+  80: 'error',
+  70: 'warning',
+  60: 'warning',
 }
 
-const stageLabels: Record<Stage, string> = {
-  new: 'New',
-  contacted: 'Contacted',
-  qualified: 'Qualified',
-  proposal_sent: 'Proposal Sent',
-  negotiating: 'Negotiating',
-  won: 'Won',
-  lost: 'Lost',
-}
-
-const stageColors: Record<Stage, string> = {
-  new: 'bg-primary/20 text-primary',
-  contacted: 'bg-blue-500/20 text-blue-400',
-  qualified: 'bg-purple-500/20 text-purple-400',
-  proposal_sent: 'bg-amber-500/20 text-amber-400',
-  negotiating: 'bg-orange-500/20 text-orange-400',
-  won: 'bg-success/20 text-success',
-  lost: 'bg-error/20 text-error',
-}
-
-const stageOrder: Stage[] = ['new', 'contacted', 'qualified', 'proposal_sent', 'negotiating', 'won', 'lost']
-
-const sourceIcons: Record<Lead['source'], string> = {
-  web: '🌐',
-  referral: '🤝',
-  social: '📱',
-  cold_outreach: '📧',
-  event: '🎤',
-  organic: '🌱',
-}
-
-const sourceLabels: Record<Lead['source'], string> = {
-  web: 'Web',
-  referral: 'Referral',
-  social: 'Social',
-  cold_outreach: 'Cold Outreach',
-  event: 'Event',
-  organic: 'Organic',
-}
-
-const sampleLeads: Lead[] = [
+const kanbanColumns = [
   {
-    id: '1',
-    name: 'Adebayo Johnson',
-    company: 'TechVentures Nigeria',
-    email: 'adebayo@techventures.ng',
-    phone: '+234 801 234 5678',
-    score: 85,
-    source: 'web',
-    status: 'qualified',
-    value: 2500000,
-    assignedTo: 'Sarah Chen',
-    createdAt: '2026-09-01',
-    lastActivity: '2 hours ago',
-    tags: ['Enterprise', 'SaaS'],
+    id: 'new',
+    title: 'New',
+    color: 'bg-blue-400',
+    items: leads.filter(l => l.status === 'NEW').map(l => ({ id: l.id, title: l.name, subtitle: l.value, tags: [{ label: l.source.replace('_', ' '), color: 'bg-primary/10 text-primary' }] })),
   },
   {
-    id: '2',
-    name: 'Fatima Al-Hassan',
-    company: 'GreenEnergy Solutions',
-    email: 'fatima@greenenergy.com',
-    phone: '+234 802 345 6789',
-    score: 92,
-    source: 'referral',
-    status: 'negotiating',
-    value: 5000000,
-    assignedTo: 'James Okafor',
-    createdAt: '2026-08-28',
-    lastActivity: '1 hour ago',
-    tags: ['Renewable', 'Enterprise'],
+    id: 'qualified',
+    title: 'Qualified',
+    color: 'bg-amber-400',
+    items: leads.filter(l => l.status === 'QUALIFIED').map(l => ({ id: l.id, title: l.name, subtitle: l.value, tags: [{ label: `Score: ${l.score}`, color: 'bg-amber-50 text-amber-700' }] })),
   },
   {
-    id: '3',
-    name: 'Chinedu Eze',
-    company: 'FinTech Hub',
-    email: 'chinedu@fintechhub.io',
-    phone: '+234 803 456 7890',
-    score: 68,
-    source: 'social',
-    status: 'contacted',
-    value: 1200000,
-    assignedTo: 'Sarah Chen',
-    createdAt: '2026-09-05',
-    lastActivity: '3 hours ago',
-    tags: ['Fintech', 'Startup'],
+    id: 'contacted',
+    title: 'Contacted',
+    color: 'bg-purple-400',
+    items: leads.filter(l => l.status === 'CONTACTED').map(l => ({ id: l.id, title: l.name, subtitle: l.value })),
   },
   {
-    id: '4',
-    name: 'Grace Nwankwo',
-    company: 'HealthPlus Africa',
-    email: 'grace@healthplus.africa',
-    phone: '+234 804 567 8901',
-    score: 78,
-    source: 'event',
-    status: 'proposal_sent',
-    value: 3200000,
-    assignedTo: 'Michael Brown',
-    createdAt: '2026-08-20',
-    lastActivity: '5 hours ago',
-    tags: ['Healthcare', 'Mid-Market'],
+    id: 'proposal',
+    title: 'Proposal Sent',
+    color: 'bg-emerald-400',
+    items: leads.filter(l => l.status === 'PROPOSAL_SENT').map(l => ({ id: l.id, title: l.name, subtitle: l.value })),
   },
   {
-    id: '5',
-    name: 'Oluwaseun Adeyemi',
-    company: 'AgroTech Nigeria',
-    email: 'seun@agrotech.ng',
-    phone: '+234 805 678 9012',
-    score: 45,
-    source: 'cold_outreach',
-    status: 'new',
-    value: 800000,
-    assignedTo: 'James Okafor',
-    createdAt: '2026-09-07',
-    lastActivity: '1 day ago',
-    tags: ['Agriculture', 'SMB'],
-  },
-  {
-    id: '6',
-    name: 'Amina Bello',
-    company: 'EduTech Academy',
-    email: 'amina@edutech.ac',
-    phone: '+234 806 789 0123',
-    score: 88,
-    source: 'organic',
-    status: 'won',
-    value: 4500000,
-    assignedTo: 'Sarah Chen',
-    createdAt: '2026-08-15',
-    lastActivity: '2 days ago',
-    tags: ['Education', 'Enterprise'],
-  },
-  {
-    id: '7',
-    name: 'Emeka Obi',
-    company: 'LogiFlow Systems',
-    email: 'emeka@logiflow.com',
-    phone: '+234 807 890 1234',
-    score: 55,
-    source: 'web',
-    status: 'contacted',
-    value: 1800000,
-    assignedTo: 'Michael Brown',
-    createdAt: '2026-09-03',
-    lastActivity: '4 hours ago',
-    tags: ['Logistics', 'Mid-Market'],
-  },
-  {
-    id: '8',
-    name: 'Ngozi Okonkwo',
-    company: 'Digital Marketing Pro',
-    email: 'ngozi@digitalmarketing.ng',
-    phone: '+234 808 901 2345',
-    score: 72,
-    source: 'referral',
-    status: 'qualified',
-    value: 2100000,
-    assignedTo: 'James Okafor',
-    createdAt: '2026-09-02',
-    lastActivity: '6 hours ago',
-    tags: ['Marketing', 'SMB'],
-  },
-  {
-    id: '9',
-    name: 'Tunde Bakare',
-    company: 'CryptoVault Exchange',
-    email: 'tunde@cryptovault.io',
-    phone: '+234 809 012 3456',
-    score: 35,
-    source: 'social',
-    status: 'lost',
-    value: 600000,
-    assignedTo: 'Sarah Chen',
-    createdAt: '2026-08-25',
-    lastActivity: '1 week ago',
-    tags: ['Crypto', 'Startup'],
-  },
-  {
-    id: '10',
-    name: 'Chioma Igwe',
-    company: 'SmartHome Nigeria',
-    email: 'chioma@smarthome.ng',
-    phone: '+234 810 123 4567',
-    score: 81,
-    source: 'event',
-    status: 'proposal_sent',
-    value: 2800000,
-    assignedTo: 'Michael Brown',
-    createdAt: '2026-08-22',
-    lastActivity: '12 hours ago',
-    tags: ['IoT', 'Enterprise'],
-  },
-  {
-    id: '11',
-    name: 'Ibrahim Mohammed',
-    company: 'Supply Chain Africa',
-    email: 'ibrahim@supplychain.africa',
-    phone: '+234 811 234 5678',
-    score: 62,
-    source: 'cold_outreach',
-    status: 'new',
-    value: 950000,
-    assignedTo: 'James Okafor',
-    createdAt: '2026-09-06',
-    lastActivity: '2 days ago',
-    tags: ['Logistics', 'SMB'],
-  },
-  {
-    id: '12',
-    name: 'Funke Adekunle',
-    company: 'CloudFirst Solutions',
-    email: 'funke@cloudfirst.dev',
-    phone: '+234 812 345 6789',
-    score: 90,
-    source: 'web',
-    status: 'negotiating',
-    value: 4200000,
-    assignedTo: 'Sarah Chen',
-    createdAt: '2026-08-18',
-    lastActivity: '30 minutes ago',
-    tags: ['Cloud', 'Enterprise'],
+    id: 'negotiation',
+    title: 'Negotiation',
+    color: 'bg-orange-400',
+    items: leads.filter(l => l.status === 'NEGOTIATING').map(l => ({ id: l.id, title: l.name, subtitle: l.value })),
   },
 ]
 
-const teamMembers = ['Sarah Chen', 'James Okafor', 'Michael Brown']
+function getScoreLabel(score: number) {
+  if (score >= 80) return { label: 'HOT', variant: 'error' as const, icon: Flame }
+  if (score >= 65) return { label: 'WARM', variant: 'warning' as const, icon: Thermometer }
+  return { label: 'COLD', variant: 'neutral' as const, icon: Snowflake }
+}
 
 export default function LeadsPage() {
-  const [leads, setLeads] = useState<Lead[]>(sampleLeads)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [sourceFilter, setSourceFilter] = useState<Lead['source'] | 'all'>('all')
-  const [scoreFilter, setScoreFilter] = useState<'all' | 'high' | 'medium' | 'low'>('all')
-  const [showFilters, setShowFilters] = useState(false)
-  const [draggedLead, setDraggedLead] = useState<string | null>(null)
-  const [dragOverStage, setDragOverStage] = useState<Stage | null>(null)
+  const [view, setView] = useState<'table' | 'kanban'>('table')
 
-  const filteredLeads = useMemo(() => {
-    return leads.filter((lead) => {
-      const matchesSearch =
-        lead.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        lead.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        lead.email.toLowerCase().includes(searchQuery.toLowerCase())
-
-      const matchesSource = sourceFilter === 'all' || lead.source === sourceFilter
-
-      const matchesScore =
-        scoreFilter === 'all' ||
-        (scoreFilter === 'high' && lead.score >= 80) ||
-        (scoreFilter === 'medium' && lead.score >= 50 && lead.score < 80) ||
-        (scoreFilter === 'low' && lead.score < 50)
-
-      return matchesSearch && matchesSource && matchesScore
-    })
-  }, [leads, searchQuery, sourceFilter, scoreFilter])
-
-  const stats = useMemo(() => {
-    const totalLeads = filteredLeads.length
-    const wonLeads = filteredLeads.filter((l) => l.status === 'won').length
-    const conversionRate = totalLeads > 0 ? ((wonLeads / totalLeads) * 100).toFixed(1) : '0'
-    const pipelineValue = filteredLeads
-      .filter((l) => !['won', 'lost'].includes(l.status))
-      .reduce((sum, l) => sum + l.value, 0)
-    const now = new Date()
-    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-    const newThisWeek = filteredLeads.filter((l) => new Date(l.createdAt) >= weekAgo).length
-
-    return { totalLeads, conversionRate, pipelineValue, newThisWeek }
-  }, [filteredLeads])
-
-  const handleDragStart = (leadId: string) => {
-    setDraggedLead(leadId)
-  }
-
-  const handleDragOver = (e: React.DragEvent, stage: Stage) => {
-    e.preventDefault()
-    setDragOverStage(stage)
-  }
-
-  const handleDragLeave = () => {
-    setDragOverStage(null)
-  }
-
-  const handleDrop = (e: React.DragEvent, stage: Stage) => {
-    e.preventDefault()
-    if (draggedLead) {
-      setLeads((prev) =>
-        prev.map((lead) =>
-          lead.id === draggedLead ? { ...lead, status: stage } : lead
-        )
-      )
-    }
-    setDraggedLead(null)
-    setDragOverStage(null)
-  }
-
-  const formatValue = (value: number) => {
-    if (value >= 1000000) {
-      return `₦${(value / 1000000).toFixed(1)}M`
-    }
-    return `₦${(value / 1000).toFixed(0)}K`
-  }
-
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-success'
-    if (score >= 50) return 'text-warning'
-    return 'text-error'
-  }
-
-  const getScoreBg = (score: number) => {
-    if (score >= 80) return 'bg-success/20'
-    if (score >= 50) return 'bg-warning/20'
-    return 'bg-error/20'
-  }
+  const columns: Column<typeof leads[0]>[] = [
+    {
+      key: 'name',
+      label: 'Lead',
+      sortable: true,
+      render: (item) => (
+        <div className="flex items-center gap-3">
+          <Avatar name={item.name} size="sm" />
+          <div>
+            <p className="font-medium text-sm">{item.name}</p>
+            <p className="text-xs text-text-muted">{item.email}</p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: 'source',
+      label: 'Source',
+      render: (item) => <Badge variant="neutral">{item.source.replace('_', ' ')}</Badge>,
+    },
+    {
+      key: 'score',
+      label: 'Score',
+      sortable: true,
+      render: (item) => {
+        const { label, variant } = getScoreLabel(item.score)
+        return <Badge variant={variant} dot>{label} ({item.score})</Badge>
+      },
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (item) => <Badge variant="primary">{item.status.replace('_', ' ')}</Badge>,
+    },
+    {
+      key: 'value',
+      label: 'Value',
+      sortable: true,
+      render: (item) => <span className="text-sm font-semibold">{item.value}</span>,
+    },
+    {
+      key: 'nextAction',
+      label: 'Next Action',
+      render: (item) => <span className="text-xs text-text-secondary">{item.nextAction}</span>,
+    },
+  ]
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold font-[family-name:var(--font-display)]">
-            Lead Generation & Pipeline
-          </h1>
-          <p className="text-text-muted">
-            Manage and track your leads through the sales pipeline.
-          </p>
-        </div>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="btn-gradient flex items-center gap-2 px-4 py-2 rounded-xl text-white font-medium"
-        >
-          <Plus className="w-5 h-5" />
-          Add Lead
-        </motion.button>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          {
-            title: 'Total Leads',
-            value: stats.totalLeads.toString(),
-            change: '+8.3%',
-            trend: 'up',
-            icon: Users,
-            color: 'primary',
-          },
-          {
-            title: 'Conversion Rate',
-            value: `${stats.conversionRate}%`,
-            change: '+2.1%',
-            trend: 'up',
-            icon: Target,
-            color: 'success',
-          },
-          {
-            title: 'Pipeline Value',
-            value: formatValue(stats.pipelineValue),
-            change: '+12.5%',
-            trend: 'up',
-            icon: DollarSign,
-            color: 'secondary',
-          },
-          {
-            title: 'New This Week',
-            value: stats.newThisWeek.toString(),
-            change: '+3',
-            trend: 'up',
-            icon: Calendar,
-            color: 'warning',
-          },
-        ].map((stat, index) => (
-          <motion.div
-            key={stat.title}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-          >
-            <Card className="relative overflow-hidden">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-text-muted text-sm">{stat.title}</p>
-                  <p className="text-2xl font-bold mt-1">{stat.value}</p>
-                  <div className="flex items-center gap-1 mt-2">
-                    {stat.trend === 'up' ? (
-                      <ArrowUpRight className="w-4 h-4 text-success" />
-                    ) : (
-                      <ArrowDownRight className="w-4 h-4 text-error" />
-                    )}
-                    <span
-                      className={`text-sm ${
-                        stat.trend === 'up' ? 'text-success' : 'text-error'
-                      }`}
-                    >
-                      {stat.change}
-                    </span>
-                    <span className="text-text-muted text-sm">vs last week</span>
-                  </div>
-                </div>
-                <div
-                  className={`p-3 rounded-xl ${
-                    stat.color === 'primary'
-                      ? 'bg-primary/10'
-                      : stat.color === 'success'
-                      ? 'bg-success/10'
-                      : stat.color === 'secondary'
-                      ? 'bg-secondary/10'
-                      : 'bg-warning/10'
-                  }`}
-                >
-                  <stat.icon
-                    className={`w-6 h-6 ${
-                      stat.color === 'primary'
-                        ? 'text-primary'
-                        : stat.color === 'success'
-                        ? 'text-success'
-                        : stat.color === 'secondary'
-                        ? 'text-secondary'
-                        : 'text-warning'
-                    }`}
-                  />
-                </div>
+    <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
+      <motion.div variants={staggerItem}>
+        <PageHeader
+          title="Leads"
+          description="Track and manage your leads"
+          breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Leads' }]}
+          actions={
+            <div className="flex items-center gap-2">
+              <div className="flex items-center bg-surface-muted rounded-lg p-0.5">
+                <button onClick={() => setView('table')} className={cn('p-1.5 rounded-md transition-colors', view === 'table' ? 'bg-surface text-foreground shadow-sm' : 'text-text-muted hover:text-foreground')}>
+                  <Table2 className="w-4 h-4" />
+                </button>
+                <button onClick={() => setView('kanban')} className={cn('p-1.5 rounded-md transition-colors', view === 'kanban' ? 'bg-surface text-foreground shadow-sm' : 'text-text-muted hover:text-foreground')}>
+                  <Kanban className="w-4 h-4" />
+                </button>
               </div>
-              <div
-                className={`absolute bottom-0 left-0 right-0 h-1 ${
-                  stat.color === 'primary'
-                    ? 'bg-gradient-to-r from-primary to-primary-light'
-                    : stat.color === 'success'
-                    ? 'bg-gradient-to-r from-success to-emerald-400'
-                    : stat.color === 'secondary'
-                    ? 'bg-gradient-to-r from-secondary to-secondary-light'
-                    : 'bg-gradient-to-r from-warning to-amber-400'
-                }`}
-              />
-            </Card>
-          </motion.div>
-        ))}
-      </div>
+              <Button leftIcon={<Plus className="w-4 h-4" />}>Add Lead</Button>
+            </div>
+          }
+        />
+      </motion.div>
 
-      {/* Filters */}
-      <Card className="!p-4">
-        <div className="flex items-center gap-4 flex-wrap">
-          <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-            <input
-              type="text"
-              placeholder="Search leads by name, company, or email..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="input-field w-full pl-10"
+      <motion.div variants={staggerItem} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard title="Total Leads" value="847" change="+18.4%" changeType="up" icon={<Target className="w-5 h-5" />} />
+        <StatCard title="Hot Leads" value="124" change="+12" changeType="up" icon={<Flame className="w-5 h-5" />} />
+        <StatCard title="Conversion Rate" value="34.2%" change="+2.1%" changeType="up" icon={<TrendingUp className="w-5 h-5" />} />
+        <StatCard title="Pipeline Value" value="₦15.4M" change="+22%" changeType="up" icon={<BarChart3 className="w-5 h-5" />} />
+      </motion.div>
+
+      <motion.div variants={staggerItem}>
+        <AIInsight title="AI Lead Insight">
+          <p>8 high-value leads require immediate follow-up. The webinar funnel generated 23 new leads this week with a 42% qualification rate. Meridian Holdings is your highest-value opportunity at ₦3.5M.</p>
+        </AIInsight>
+      </motion.div>
+
+      <motion.div variants={staggerItem}>
+        {view === 'table' ? (
+          <div className="card bg-surface border border-border rounded-2xl overflow-hidden p-6">
+            <DataTable
+              columns={columns}
+              data={leads}
+              searchable
+              searchPlaceholder="Search leads..."
+              searchKey="name"
+              actions={(item) => (
+                <Dropdown
+                  trigger={<button className="p-1.5 rounded-lg text-text-muted hover:text-foreground hover:bg-surface-light"><MoreHorizontal className="w-4 h-4" /></button>}
+                  items={[
+                    { label: 'View Details', onClick: () => {} },
+                    { label: 'Send Email', onClick: () => {}, icon: <Mail className="w-4 h-4" /> },
+                    { label: 'Call', onClick: () => {}, icon: <Phone className="w-4 h-4" /> },
+                    { divider: true, label: '', onClick: () => {} },
+                    { label: 'Delete', onClick: () => {}, danger: true },
+                  ]}
+                />
+              )}
             />
           </div>
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${
-              showFilters
-                ? 'border-primary bg-primary/10 text-primary'
-                : 'border-white/10 text-text-muted hover:border-white/20'
-            }`}
-          >
-            <Filter className="w-4 h-4" />
-            Filters
-            <ChevronDown
-              className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`}
-            />
-          </button>
-        </div>
-
-        <AnimatePresence>
-          {showFilters && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
-            >
-              <div className="flex items-center gap-4 mt-4 pt-4 border-t border-white/5 flex-wrap">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-text-muted">Source:</span>
-                  <select
-                    value={sourceFilter}
-                    onChange={(e) => setSourceFilter(e.target.value as Lead['source'] | 'all')}
-                    className="input-field text-sm py-1 px-3"
-                  >
-                    <option value="all">All Sources</option>
-                    {Object.entries(sourceLabels).map(([key, label]) => (
-                      <option key={key} value={key}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-text-muted">Score:</span>
-                  <select
-                    value={scoreFilter}
-                    onChange={(e) => setScoreFilter(e.target.value as typeof scoreFilter)}
-                    className="input-field text-sm py-1 px-3"
-                  >
-                    <option value="all">All Scores</option>
-                    <option value="high">High (80+)</option>
-                    <option value="medium">Medium (50-79)</option>
-                    <option value="low">Low (&lt;50)</option>
-                  </select>
-                </div>
-                {(sourceFilter !== 'all' || scoreFilter !== 'all') && (
-                  <button
-                    onClick={() => {
-                      setSourceFilter('all')
-                      setScoreFilter('all')
-                    }}
-                    className="flex items-center gap-1 text-sm text-secondary hover:text-secondary-light transition-colors"
-                  >
-                    <X className="w-3 h-3" />
-                    Clear filters
-                  </button>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </Card>
-
-      {/* Pipeline Board */}
-      <div className="flex gap-4 overflow-x-auto pb-4" style={{ minHeight: '500px' }}>
-        {stageOrder.map((stage) => {
-          const stageLeads = filteredLeads.filter((lead) => lead.status === stage)
-          const isDragOver = dragOverStage === stage
-
-          return (
-            <div
-              key={stage}
-              className={`flex-shrink-0 w-72 flex flex-col rounded-2xl transition-colors ${
-                isDragOver ? 'bg-primary/5 ring-2 ring-primary/30' : 'bg-surface/50'
-              }`}
-              onDragOver={(e) => handleDragOver(e, stage)}
-              onDragLeave={handleDragLeave}
-              onDrop={(e) => handleDrop(e, stage)}
-            >
-              {/* Column Header */}
-              <div className="p-4 border-b border-white/5">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`px-2 py-1 rounded-md text-xs font-medium ${stageColors[stage]}`}
-                    >
-                      {stageLabels[stage]}
-                    </span>
-                    <span className="text-sm text-text-muted font-medium">
-                      {stageLeads.length}
-                    </span>
-                  </div>
-                  {stageLeads.length > 0 && (
-                    <span className="text-xs text-text-muted">
-                      {formatValue(stageLeads.reduce((sum, l) => sum + l.value, 0))}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Column Content */}
-              <div className="flex-1 p-3 space-y-3 overflow-y-auto">
-                <AnimatePresence mode="popLayout">
-                  {stageLeads.map((lead) => (
-                    <motion.div
-                      key={lead.id}
-                      layout
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      transition={{ duration: 0.2 }}
-                      draggable
-                      onDragStart={() => handleDragStart(lead.id)}
-                      onDragEnd={() => {
-                        setDraggedLead(null)
-                        setDragOverStage(null)
-                      }}
-                      className={`bg-surface rounded-xl p-4 border border-white/5 cursor-grab active:cursor-grabbing transition-all hover:border-primary/30 ${
-                        draggedLead === lead.id ? 'opacity-50 scale-95' : ''
-                      }`}
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <GripVertical className="w-4 h-4 text-text-muted" />
-                          <div>
-                            <h4 className="font-medium text-sm">{lead.name}</h4>
-                            <p className="text-xs text-text-muted">{lead.company}</p>
-                          </div>
-                        </div>
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-xs font-medium ${getScoreBg(
-                            lead.score
-                          )} ${getScoreColor(lead.score)}`}
-                        >
-                          {lead.score}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="text-xs" title={sourceLabels[lead.source]}>
-                          {sourceIcons[lead.source]}
-                        </span>
-                        <span className="text-xs text-text-muted">{lead.source.replace('_', ' ')}</span>
-                        <span className="text-xs text-text-muted mx-1">•</span>
-                        <span className="text-xs font-medium text-primary">
-                          {formatValue(lead.value)}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1">
-                          <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
-                            <span className="text-[10px] font-medium text-primary">
-                              {lead.assignedTo
-                                .split(' ')
-                                .map((n) => n[0])
-                                .join('')}
-                            </span>
-                          </div>
-                          <span className="text-xs text-text-muted">{lead.assignedTo.split(' ')[0]}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          {lead.tags.slice(0, 2).map((tag) => (
-                            <span
-                              key={tag}
-                              className="px-1.5 py-0.5 rounded text-[10px] bg-surface-light text-text-muted"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                          {lead.tags.length > 2 && (
-                            <span className="text-[10px] text-text-muted">
-                              +{lead.tags.length - 2}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-xs text-text-muted">
-                          <Mail className="w-3 h-3" />
-                          <span className="truncate max-w-[120px]">{lead.email}</span>
-                        </div>
-                        <span className="text-[10px] text-text-muted">{lead.lastActivity}</span>
-                      </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-
-                {stageLeads.length === 0 && (
-                  <div className="text-center py-8 text-text-muted text-sm">
-                    No leads in this stage
-                  </div>
-                )}
-              </div>
-            </div>
-          )
-        })}
-      </div>
-
-      {/* Team Performance */}
-      <Card>
-        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Star className="w-5 h-5 text-warning" />
-          Team Performance
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {teamMembers.map((member, index) => {
-            const memberLeads = leads.filter((l) => l.assignedTo === member)
-            const memberWon = memberLeads.filter((l) => l.status === 'won').length
-            const memberValue = memberLeads.reduce((sum, l) => sum + l.value, 0)
-
-            return (
-              <motion.div
-                key={member}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="p-4 rounded-xl bg-surface-light"
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                    <span className="text-sm font-medium text-primary">
-                      {member
-                        .split(' ')
-                        .map((n) => n[0])
-                        .join('')}
-                    </span>
-                  </div>
-                  <div>
-                    <h4 className="font-medium">{member}</h4>
-                    <p className="text-xs text-text-muted">
-                      {memberLeads.length} leads assigned
-                    </p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="p-2 rounded-lg bg-surface">
-                    <p className="text-xs text-text-muted">Won</p>
-                    <p className="text-lg font-bold text-success">{memberWon}</p>
-                  </div>
-                  <div className="p-2 rounded-lg bg-surface">
-                    <p className="text-xs text-text-muted">Value</p>
-                    <p className="text-lg font-bold text-primary">{formatValue(memberValue)}</p>
-                  </div>
-                </div>
-              </motion.div>
-            )
-          })}
-        </div>
-      </Card>
-    </div>
+        ) : (
+          <KanbanBoard columns={kanbanColumns} />
+        )}
+      </motion.div>
+    </motion.div>
   )
 }
