@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import {
   Settings,
@@ -8,7 +8,6 @@ import {
   Shield,
   Bell,
   CreditCard,
-  Palette,
   Globe,
   Mail,
   MessageSquare,
@@ -24,6 +23,7 @@ import Button from '@/components/ui/button'
 import Input from '@/components/ui/input'
 import Card from '@/components/ui/card'
 import Select from '@/components/ui/select'
+import { COMPANY } from '@/lib/constants'
 
 const settingsSections = [
   { id: 'organisation', label: 'Organisation', icon: Globe },
@@ -39,8 +39,24 @@ const settingsSections = [
   { id: 'audit', label: 'Audit Logs', icon: FileText },
 ]
 
+interface UserData {
+  id: string
+  name: string | null
+  email: string
+  role: string
+  department: string | null
+  isActive: boolean
+}
+
 export default function SettingsPage() {
   const [activeSection, setActiveSection] = useState('organisation')
+  const [users, setUsers] = useState<UserData[]>([])
+
+  useEffect(() => {
+    fetch('/api/dashboard')
+      .then((res) => res.json())
+      .catch(() => {})
+  }, [])
 
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
@@ -53,7 +69,6 @@ export default function SettingsPage() {
       </motion.div>
 
       <motion.div variants={staggerItem} className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Settings Navigation */}
         <div className="lg:col-span-1">
           <Card padding="sm">
             <nav className="space-y-0.5">
@@ -76,20 +91,19 @@ export default function SettingsPage() {
           </Card>
         </div>
 
-        {/* Settings Content */}
         <div className="lg:col-span-3">
           {activeSection === 'organisation' && (
             <Card padding="lg">
               <h3 className="text-base font-semibold mb-6">Organisation Settings</h3>
               <div className="space-y-5 max-w-2xl">
-                <Input label="Organisation Name" defaultValue="Core Skills Transformational Academy Limited" />
-                <Input label="Trade Name" defaultValue="CTAL AI" />
-                <Input label="Email" type="email" defaultValue="info@ctalai.com" />
-                <Input label="Phone" defaultValue="+234 801 234 5678" />
-                <Input label="Website" defaultValue="https://ctalai.com" />
-                <Input label="Address" defaultValue="14 Adeola Odeku Street, Victoria Island, Lagos" />
+                <Input label="Organisation Name" defaultValue={COMPANY.name} />
+                <Input label="Trade Name" defaultValue={COMPANY.shortName + ' AI'} />
+                <Input label="Email" type="email" defaultValue={COMPANY.email} />
+                <Input label="Phone" defaultValue={COMPANY.phone} />
+                <Input label="Website" defaultValue={COMPANY.website} />
+                <Input label="Address" defaultValue={COMPANY.address} />
                 <div className="grid grid-cols-2 gap-4">
-                  <Select label="Currency" options={[{ value: 'NGN', label: '₦ NGN' }, { value: 'USD', label: '$ USD' }]} defaultValue="NGN" />
+                  <Select label="Currency" options={[{ value: 'NGN', label: '\u20a6 NGN' }, { value: 'USD', label: '$ USD' }]} defaultValue="NGN" />
                   <Select label="Timezone" options={[{ value: 'Africa/Lagos', label: 'WAT (Africa/Lagos)' }, { value: 'UTC', label: 'UTC' }]} defaultValue="Africa/Lagos" />
                 </div>
                 <Button>Save Changes</Button>
@@ -105,10 +119,11 @@ export default function SettingsPage() {
               </div>
               <div className="space-y-3">
                 {[
-                  { name: 'John Doe', email: 'john@ctalai.com', role: 'Super Admin', status: 'Active' },
-                  { name: 'Chioma Nwosu', email: 'chioma@ctalai.com', role: 'Operations Manager', status: 'Active' },
+                  { name: 'Admin User', email: 'admin@ctalai.com', role: 'Super Admin', status: 'Active' },
+                  { name: 'Chioma Nwosu', email: 'chioma@ctalai.com', role: 'CS Manager', status: 'Active' },
                   { name: 'Emeka Okonkwo', email: 'emeka@ctalai.com', role: 'Sales Lead', status: 'Active' },
                   { name: 'Aisha Abdullahi', email: 'aisha@ctalai.com', role: 'Marketing Manager', status: 'Active' },
+                  { name: 'Tunde Bakare', email: 'tunde@ctalai.com', role: 'Ops Coordinator', status: 'Active' },
                 ].map((user) => (
                   <div key={user.email} className="flex items-center justify-between p-3 rounded-xl bg-surface-light">
                     <div className="flex items-center gap-3">
@@ -134,21 +149,9 @@ export default function SettingsPage() {
             <Card padding="lg">
               <h3 className="text-base font-semibold mb-6">AI Settings</h3>
               <div className="space-y-5 max-w-2xl">
-                <Input label="OpenAI API Key" type="password" placeholder="sk-..." helperText="Your OpenAI API key is stored securely on the server" />
-                <Select label="Default AI Model" options={[{ value: 'gpt-4o', label: 'GPT-4o' }, { value: 'gpt-4o-mini', label: 'GPT-4o Mini' }]} defaultValue="gpt-4o" />
+                <Input label="OpenAI API Key" type="password" placeholder="sk-..." helperText="Add your OpenAI API key to enable AI features" />
+                <Select label="Default AI Model" options={[{ value: 'gpt-4o', label: 'GPT-4o' }, { value: 'gpt-4o-mini', label: 'GPT-4o Mini' }]} defaultValue="gpt-4o-mini" />
                 <Input label="Max Tokens" type="number" defaultValue="2000" />
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">AI Agent Auto-Actions</label>
-                  <p className="text-xs text-text-muted">Allow AI agents to take automatic actions without human approval</p>
-                  <div className="flex items-center gap-4">
-                    {['Growth', 'Customer Success', 'Learning', 'Community', 'Operations', 'Finance', 'People', 'CEO Intelligence'].map((agent) => (
-                      <label key={agent} className="flex items-center gap-2 text-sm">
-                        <input type="checkbox" defaultChecked className="w-4 h-4 rounded border-border text-primary focus:ring-primary" />
-                        {agent}
-                      </label>
-                    ))}
-                  </div>
-                </div>
                 <Button>Save AI Settings</Button>
               </div>
             </Card>
@@ -175,16 +178,16 @@ export default function SettingsPage() {
               <h3 className="text-base font-semibold mb-6">Integrations</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[
-                  { name: 'Paystack', description: 'Payment processing', status: 'Connected', connected: true },
-                  { name: 'OpenAI', description: 'AI-powered features', status: 'Connected', connected: true },
-                  { name: 'Termii', description: 'SMS notifications', status: 'Not Connected', connected: false },
-                  { name: 'WhatsApp Business', description: 'Messaging integration', status: 'Not Connected', connected: false },
+                  { name: 'Paystack', description: 'Payment processing', connected: !!process.env?.PAYSTACK_SECRET_KEY },
+                  { name: 'OpenAI', description: 'AI-powered features', connected: false },
+                  { name: 'Termii', description: 'SMS notifications', connected: false },
+                  { name: 'WhatsApp Business', description: 'Messaging integration', connected: false },
                 ].map((integration) => (
                   <div key={integration.name} className="p-4 rounded-xl border border-border">
                     <div className="flex items-center justify-between mb-2">
                       <h4 className="text-sm font-semibold">{integration.name}</h4>
                       <span className={cn('text-xs font-medium', integration.connected ? 'text-emerald-600' : 'text-text-muted')}>
-                        {integration.status}
+                        {integration.connected ? 'Connected' : 'Not Connected'}
                       </span>
                     </div>
                     <p className="text-xs text-text-muted mb-3">{integration.description}</p>

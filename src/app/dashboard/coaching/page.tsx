@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Brain, Plus, Calendar, Target, TrendingUp, Users, ChevronRight } from 'lucide-react'
 import { staggerContainer, staggerItem } from '@/lib/motion'
@@ -12,34 +13,43 @@ import Card from '@/components/ui/card'
 import Progress from '@/components/ui/progress'
 import AIInsight from '@/components/ui/ai-insight'
 
-const clients = [
-  { name: 'Adebayo Ogundimu', coach: 'Coach Emeka', goals: 5, completed: 4, progress: 80, nextSession: '15 Aug 2025', status: 'On Track' },
-  { name: 'Fatima Al-Rashid', coach: 'Coach Chioma', goals: 4, completed: 3, progress: 75, nextSession: '16 Aug 2025', status: 'On Track' },
-  { name: 'Chukwuma Eze', coach: 'Coach Emeka', goals: 6, completed: 2, progress: 33, nextSession: '14 Aug 2025', status: 'At Risk' },
-  { name: 'Ngozi Okafor', coach: 'Coach Chioma', goals: 4, completed: 4, progress: 100, nextSession: 'Completed', status: 'Completed' },
-  { name: 'Ibrahim Musa', coach: 'Coach Emeka', goals: 5, completed: 3, progress: 60, nextSession: '17 Aug 2025', status: 'On Track' },
-]
+interface CoachingSession {
+  id: string
+  scheduledAt: string
+  duration: number
+  status: string
+  notes: string | null
+  customer: { name: string; email: string | null }
+  coach: { user: { name: string } } | null
+}
 
-const upcomingSessions = [
-  { id: '1', client: 'Adebayo Ogundimu', coach: 'Coach Emeka', date: '15 Aug 2025', time: '10:00 AM', type: 'Progress Review' },
-  { id: '2', client: 'Fatima Al-Rashid', coach: 'Coach Chioma', date: '16 Aug 2025', time: '2:00 PM', type: 'Goal Setting' },
-  { id: '3', client: 'Chukwuma Eze', coach: 'Coach Emeka', date: '14 Aug 2025', time: '11:00 AM', type: 'Action Plan Review' },
-]
-
-const stats = [
-  { title: 'Active Clients', value: '48', change: '+5', changeType: 'up' as const, icon: Users },
-  { title: 'Sessions This Week', value: '24', change: '+3', changeType: 'up' as const, icon: Calendar },
-  { title: 'Avg Progress', value: '72%', change: '+8%', changeType: 'up' as const, icon: TrendingUp },
-  { title: 'Goals Completed', value: '156', change: '+22', changeType: 'up' as const, icon: Target },
-]
+interface CoachingData {
+  sessions: CoachingSession[]
+  stats: { status: string; _count: number }[]
+}
 
 const statusColor: Record<string, string> = {
-  'On Track': 'text-emerald-600 bg-emerald-50',
-  'At Risk': 'text-amber-600 bg-amber-50',
-  'Completed': 'text-primary bg-primary/8',
+  SCHEDULED: 'text-primary bg-primary/8',
+  IN_PROGRESS: 'text-amber-600 bg-amber-50',
+  COMPLETED: 'text-emerald-600 bg-emerald-50',
+  CANCELLED: 'text-red-600 bg-red-50',
 }
 
 export default function CoachingPage() {
+  const [data, setData] = useState<CoachingData | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/coaching')
+      .then((res) => res.json())
+      .then(setData)
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [])
+
+  const scheduledCount = data?.stats.find((s) => s.status === 'SCHEDULED')?._count || 0
+  const completedCount = data?.stats.find((s) => s.status === 'COMPLETED')?._count || 0
+
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
       <motion.div variants={staggerItem}>
@@ -52,14 +62,15 @@ export default function CoachingPage() {
       </motion.div>
 
       <motion.div variants={staggerItem} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat) => (
-          <StatCard key={stat.title} title={stat.title} value={stat.value} change={stat.change} changeType={stat.changeType} icon={<stat.icon className="w-5 h-5" />} />
-        ))}
+        <StatCard title="Total Sessions" value={loading ? '...' : (data?.sessions.length || 0).toString()} change="+5" changeType="up" icon={<Users className="w-5 h-5" />} />
+        <StatCard title="Scheduled" value={loading ? '...' : scheduledCount.toString()} change="+3" changeType="up" icon={<Calendar className="w-5 h-5" />} />
+        <StatCard title="Completed" value={loading ? '...' : completedCount.toString()} change="+8" changeType="up" icon={<Target className="w-5 h-5" />} />
+        <StatCard title="Completion Rate" value={loading ? '...' : (data?.sessions.length ? `${Math.round((completedCount / data.sessions.length) * 100)}%` : '0%')} change="+5%" changeType="up" icon={<TrendingUp className="w-5 h-5" />} />
       </motion.div>
 
       <motion.div variants={staggerItem}>
         <AIInsight title="AI Coaching Insight">
-          <p>Client Chukwuma Eze has completed only 33% of their action plan and is at risk of disengaging. Recommend an intensive progress review session. Adebayo is on track with 80% completion - consider an advanced goal-setting session.</p>
+          <p>Coaching data is synced from the database. {data?.sessions.length || 0} total sessions, {scheduledCount} scheduled, {completedCount} completed.</p>
         </AIInsight>
       </motion.div>
 
@@ -67,44 +78,48 @@ export default function CoachingPage() {
         <motion.div variants={staggerItem} className="lg:col-span-2">
           <Card padding="none">
             <div className="px-6 py-4 border-b border-border">
-              <h3 className="text-sm font-semibold">Client Progress</h3>
+              <h3 className="text-sm font-semibold">Coaching Sessions</h3>
             </div>
-            <div className="divide-y divide-border-light">
-              {clients.map((client) => (
-                <div key={client.name} className="px-6 py-4 flex items-center gap-4 hover:bg-surface-light transition-colors cursor-pointer">
-                  <Avatar name={client.name} size="sm" />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium truncate">{client.name}</p>
-                      <span className={cn('text-[10px] font-medium px-2 py-0.5 rounded-full', statusColor[client.status])}>{client.status}</span>
+            {loading ? (
+              <div className="p-6 space-y-3">{[1, 2, 3].map((i) => <div key={i} className="skeleton h-16 rounded-lg" />)}</div>
+            ) : (
+              <div className="divide-y divide-border-light">
+                {(data?.sessions || []).map((session) => (
+                  <div key={session.id} className="px-6 py-4 flex items-center gap-4 hover:bg-surface-light transition-colors cursor-pointer">
+                    <Avatar name={session.customer.name} size="sm" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium truncate">{session.customer.name}</p>
+                        <span className={cn('text-[10px] font-medium px-2 py-0.5 rounded-full', statusColor[session.status] || 'text-text-muted bg-surface-muted')}>{session.status.replace('_', ' ')}</span>
+                      </div>
+                      <p className="text-xs text-text-muted mt-0.5">
+                        {session.coach?.user?.name || 'Unassigned'} | {session.duration}min | {new Date(session.scheduledAt).toLocaleDateString('en-NG')}
+                      </p>
                     </div>
-                    <p className="text-xs text-text-muted mt-0.5">{client.coach} | {client.completed}/{client.goals} goals | Next: {client.nextSession}</p>
+                    <ChevronRight className="w-4 h-4 text-text-muted shrink-0" />
                   </div>
-                  <div className="w-24">
-                    <Progress value={client.progress} size="sm" />
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-text-muted shrink-0" />
-                </div>
-              ))}
-            </div>
+                ))}
+                {(!data?.sessions || data.sessions.length === 0) && (
+                  <div className="px-6 py-8 text-center text-sm text-text-muted">No coaching sessions found</div>
+                )}
+              </div>
+            )}
           </Card>
         </motion.div>
 
         <motion.div variants={staggerItem}>
           <Card padding="md">
-            <h3 className="text-sm font-semibold mb-4">Upcoming Sessions</h3>
+            <h3 className="text-sm font-semibold mb-4">Session Status</h3>
             <div className="space-y-3">
-              {upcomingSessions.map((session) => (
-                <div key={session.id} className="p-3 rounded-xl bg-surface-light">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Calendar className="w-3.5 h-3.5 text-primary" />
-                    <span className="text-xs font-medium text-primary">{session.type}</span>
-                  </div>
-                  <p className="text-sm font-medium">{session.client}</p>
-                  <p className="text-xs text-text-muted">{session.date} at {session.time}</p>
-                  <p className="text-xs text-text-muted">{session.coach}</p>
+              {data?.stats.map((stat) => (
+                <div key={stat.status} className="flex items-center justify-between py-2">
+                  <span className="text-sm text-text-secondary">{stat.status.replace('_', ' ')}</span>
+                  <span className="text-sm font-semibold">{stat._count}</span>
                 </div>
               ))}
+              {(!data?.stats || data.stats.length === 0) && (
+                <p className="text-sm text-text-muted text-center py-4">No data yet</p>
+              )}
             </div>
           </Card>
         </motion.div>

@@ -1,97 +1,105 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   DollarSign,
-  TrendingUp,
   TrendingDown,
-  CreditCard,
-  FileText,
-  AlertCircle,
-  ArrowUpRight,
   CheckCircle2,
   Clock,
-  XCircle,
   Plus,
   Download,
 } from 'lucide-react'
 import { staggerContainer, staggerItem } from '@/lib/motion'
-import { cn } from '@/lib/utils'
+import { cn, formatCurrency } from '@/lib/utils'
 import { PageHeader, StatCard } from '@/components/ui/card'
 import Badge from '@/components/ui/badge'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
 import DataTable, { Column } from '@/components/ui/data-table'
-import Dropdown from '@/components/ui/dropdown'
 import AIInsight from '@/components/ui/ai-insight'
-import Progress from '@/components/ui/progress'
 
-const stats = [
-  { title: 'Revenue', value: '₦24.8M', change: '+18.4%', changeType: 'up' as const, icon: DollarSign },
-  { title: 'Collected', value: '₦21.2M', change: '+15.2%', changeType: 'up' as const, icon: CheckCircle2 },
-  { title: 'Outstanding', value: '₦3.6M', change: '+24%', changeType: 'down' as const, icon: Clock },
-  { title: 'Expenses', value: '₦8.4M', change: '+5.1%', changeType: 'down' as const, icon: TrendingDown },
-]
-
-const payments = [
-  { id: '1', customer: 'Adebayo Ogundimu', programme: 'Advanced Valuation', amount: '₦125,000', status: 'SUCCESSFUL', date: '12 Aug 2025', reference: 'PAY-2025-0842' },
-  { id: '2', customer: 'TechStart Nigeria', programme: 'Corporate Training', amount: '₦450,000', status: 'SUCCESSFUL', date: '11 Aug 2025', reference: 'PAY-2025-0841' },
-  { id: '3', customer: 'Lagos Business School', programme: 'Leadership Academy', amount: '₦320,000', status: 'PENDING', date: '10 Aug 2025', reference: 'PAY-2025-0840' },
-  { id: '4', customer: 'Green Energy Co', programme: 'Digital Marketing', amount: '₦180,000', status: 'SUCCESSFUL', date: '9 Aug 2025', reference: 'PAY-2025-0839' },
-  { id: '5', customer: 'Ibrahim Musa', programme: 'Advanced Valuation', amount: '₦125,000', status: 'FAILED', date: '8 Aug 2025', reference: 'PAY-2025-0838' },
-  { id: '6', customer: 'Blessing Okoro', programme: 'Leadership Academy', amount: '₦85,000', status: 'SUCCESSFUL', date: '7 Aug 2025', reference: 'PAY-2025-0837' },
-  { id: '7', customer: 'FinEdge Solutions', programme: 'Digital Marketing', amount: '₦180,000', status: 'PENDING', date: '6 Aug 2025', reference: 'PAY-2025-0836' },
-]
-
-const statusVariant: Record<string, 'success' | 'warning' | 'error' | 'neutral'> = {
-  SUCCESSFUL: 'success',
-  PENDING: 'warning',
-  FAILED: 'error',
-  REFUNDED: 'neutral',
+interface Invoice {
+  id: string
+  invoiceNumber: string
+  amount: number
+  total: number
+  status: string
+  createdAt: string
+  dueDate: string | null
+  customer: { name: string }
 }
 
-const revenueByProgramme = [
-  { name: 'Advanced Valuation', revenue: '₦8.2M', pct: 33 },
-  { name: 'Digital Marketing', revenue: '₦6.4M', pct: 26 },
-  { name: 'Leadership Academy', revenue: '₦5.1M', pct: 21 },
-  { name: 'Corporate Training', revenue: '₦3.8M', pct: 15 },
-  { name: 'Others', revenue: '₦1.3M', pct: 5 },
-]
+interface FinanceData {
+  invoices: Invoice[]
+  stats: { status: string; _count: number; _sum: { amount: number | null } }[]
+  revenue: number
+  expenses: number
+}
+
+const statusVariant: Record<string, 'success' | 'warning' | 'error' | 'neutral'> = {
+  PAID: 'success',
+  SENT: 'warning',
+  VIEWED: 'warning',
+  DRAFT: 'neutral',
+  PARTIALLY_PAID: 'warning',
+  OVERDUE: 'error',
+  CANCELLED: 'error',
+}
 
 export default function FinancePage() {
-  const columns: Column<typeof payments[0]>[] = [
+  const [data, setData] = useState<FinanceData | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/finance')
+      .then((res) => res.json())
+      .then(setData)
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [])
+
+  const paidCount = data?.stats.find((s) => s.status === 'PAID')?._count || 0
+  const pendingCount = data?.stats.find((s) => s.status === 'SENT')?._count || 0
+  const overdueCount = data?.stats.find((s) => s.status === 'OVERDUE')?._count || 0
+
+  const outstanding = (data?.invoices || [])
+    .filter((i) => ['SENT', 'VIEWED', 'OVERDUE', 'PARTIALLY_PAID'].includes(i.status))
+    .reduce((sum, i) => sum + i.total, 0)
+
+  const columns: Column<Invoice>[] = [
+    {
+      key: 'invoiceNumber',
+      label: 'Invoice',
+      sortable: true,
+      render: (item) => <span className="text-sm font-mono font-medium">{item.invoiceNumber}</span>,
+    },
     {
       key: 'customer',
       label: 'Customer',
-      sortable: true,
-      render: (item) => <span className="text-sm font-medium">{item.customer}</span>,
+      render: (item) => <span className="text-sm">{item.customer.name}</span>,
     },
     {
-      key: 'programme',
-      label: 'Programme',
-      render: (item) => <span className="text-sm text-text-secondary">{item.programme}</span>,
-    },
-    {
-      key: 'amount',
+      key: 'total',
       label: 'Amount',
       sortable: true,
-      render: (item) => <span className="text-sm font-semibold">{item.amount}</span>,
+      render: (item) => <span className="text-sm font-semibold">{formatCurrency(item.total)}</span>,
     },
     {
       key: 'status',
       label: 'Status',
-      render: (item) => <Badge variant={statusVariant[item.status]} dot>{item.status}</Badge>,
+      render: (item) => <Badge variant={statusVariant[item.status] || 'neutral'} dot>{item.status.replace('_', ' ')}</Badge>,
     },
     {
-      key: 'date',
+      key: 'createdAt',
       label: 'Date',
       sortable: true,
-      render: (item) => <span className="text-xs text-text-muted">{item.date}</span>,
+      render: (item) => <span className="text-xs text-text-muted">{new Date(item.createdAt).toLocaleDateString('en-NG')}</span>,
     },
     {
-      key: 'reference',
-      label: 'Reference',
-      render: (item) => <span className="text-xs text-text-muted font-mono">{item.reference}</span>,
+      key: 'dueDate',
+      label: 'Due Date',
+      render: (item) => <span className="text-xs text-text-muted">{item.dueDate ? new Date(item.dueDate).toLocaleDateString('en-NG') : '—'}</span>,
     },
   ]
 
@@ -112,71 +120,31 @@ export default function FinancePage() {
       </motion.div>
 
       <motion.div variants={staggerItem} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat) => (
-          <StatCard key={stat.title} title={stat.title} value={stat.value} change={stat.change} changeType={stat.changeType} icon={<stat.icon className="w-5 h-5" />} />
-        ))}
+        <StatCard title="Total Revenue" value={loading ? '...' : formatCurrency(data?.revenue || 0)} change="+18.4%" changeType="up" icon={<DollarSign className="w-5 h-5" />} />
+        <StatCard title="Paid Invoices" value={loading ? '...' : paidCount.toString()} change="+12" changeType="up" icon={<CheckCircle2 className="w-5 h-5" />} />
+        <StatCard title="Outstanding" value={loading ? '...' : formatCurrency(outstanding)} change="+24%" changeType="down" icon={<Clock className="w-5 h-5" />} />
+        <StatCard title="Overdue" value={loading ? '...' : overdueCount.toString()} change="-2" changeType="up" icon={<TrendingDown className="w-5 h-5" />} />
       </motion.div>
 
       <motion.div variants={staggerItem}>
         <AIInsight title="AI Finance Insight">
-          <p>Revenue is up 18.4% this month. ₦3.6M in outstanding payments requires follow-up. 2 invoices are overdue. Recommend automated payment reminders for pending invoices.</p>
+          <p>
+            {loading ? 'Loading financial data...' : `Total revenue collected: ${formatCurrency(data?.revenue || 0)}. ${outstanding > 0 ? `${formatCurrency(outstanding)} in outstanding payments requires follow-up.` : 'All payments are up to date.'} ${overdueCount > 0 ? `${overdueCount} invoices are overdue.` : ''}`}
+          </p>
         </AIInsight>
       </motion.div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <motion.div variants={staggerItem} className="lg:col-span-2">
-          <Card padding="md">
-            <h3 className="text-sm font-semibold mb-4">Revenue by Programme</h3>
-            <div className="space-y-3">
-              {revenueByProgramme.map((item) => (
-                <div key={item.name} className="flex items-center gap-4">
-                  <span className="text-sm text-text-secondary w-40 shrink-0">{item.name}</span>
-                  <div className="flex-1">
-                    <div className="h-2 rounded-full bg-surface-muted">
-                      <div className="h-full rounded-full bg-primary" style={{ width: `${item.pct}%` }} />
-                    </div>
-                  </div>
-                  <span className="text-sm font-semibold w-20 text-right">{item.revenue}</span>
-                  <span className="text-xs text-text-muted w-10 text-right">{item.pct}%</span>
-                </div>
-              ))}
-            </div>
-          </Card>
-        </motion.div>
-
-        <motion.div variants={staggerItem}>
-          <Card padding="md">
-            <h3 className="text-sm font-semibold mb-4">Payment Status</h3>
-            <div className="space-y-3">
-              {[
-                { label: 'Successful', count: 142, amount: '₦21.2M', color: 'bg-emerald-500' },
-                { label: 'Pending', count: 8, amount: '₦1.8M', color: 'bg-amber-500' },
-                { label: 'Failed', count: 3, amount: '₦420K', color: 'bg-red-500' },
-                { label: 'Refunded', count: 2, amount: '₦180K', color: 'bg-gray-400' },
-              ].map((item) => (
-                <div key={item.label} className="flex items-center justify-between py-2">
-                  <div className="flex items-center gap-2">
-                    <div className={cn('w-2.5 h-2.5 rounded-full', item.color)} />
-                    <span className="text-sm">{item.label}</span>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-semibold">{item.amount}</p>
-                    <p className="text-xs text-text-muted">{item.count} payments</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Card>
-        </motion.div>
-      </div>
 
       <motion.div variants={staggerItem}>
         <Card padding="none">
           <div className="px-6 py-4 border-b border-border">
-            <h3 className="text-sm font-semibold">Recent Payments</h3>
+            <h3 className="text-sm font-semibold">Invoices</h3>
           </div>
           <div className="p-6">
-            <DataTable columns={columns} data={payments} searchable searchPlaceholder="Search payments..." searchKey="customer" />
+            {loading ? (
+              <div className="space-y-3">{[1, 2, 3, 4].map((i) => <div key={i} className="skeleton h-12 rounded-lg" />)}</div>
+            ) : (
+              <DataTable columns={columns} data={data?.invoices || []} searchable searchPlaceholder="Search invoices..." searchKey="invoiceNumber" />
+            )}
           </div>
         </Card>
       </motion.div>
