@@ -1,8 +1,8 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Brain, Upload, Plus } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { Upload } from 'lucide-react'
 import { staggerContainer, staggerItem } from '@/lib/motion'
 import { PageHeader } from '@/components/ui/card'
 import Button from '@/components/ui/button'
@@ -11,16 +11,20 @@ import Badge from '@/components/ui/badge'
 import AIInsight from '@/components/ui/ai-insight'
 import { useToast } from '@/components/ui/toast'
 
-const sources = [
-  { name: 'Programme Catalogue', type: 'Document', items: 24, lastSync: '2 hours ago', status: 'Indexed' },
-  { name: 'FAQ Database', type: 'FAQ', items: 156, lastSync: '1 hour ago', status: 'Indexed' },
-  { name: 'Company Policies', type: 'Policy', items: 18, lastSync: '1 day ago', status: 'Indexed' },
-  { name: 'Course Materials', type: 'Document', items: 89, lastSync: '3 hours ago', status: 'Indexed' },
-]
-
 export default function AIKnowledgePage() {
-  const router = useRouter()
   const { toast } = useToast()
+  const [sources, setSources] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/ai-knowledge')
+      .then((res) => res.json())
+      .then((d) => {
+        setSources(d.items || d.sources || d.data || [])
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [])
 
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
@@ -35,17 +39,21 @@ export default function AIKnowledgePage() {
       <motion.div variants={staggerItem}>
         <Card padding="md">
           <h3 className="text-sm font-semibold mb-4">Knowledge Sources</h3>
-          <div className="space-y-3">
-            {sources.map((s) => (
-              <div key={s.name} className="flex items-center justify-between p-3 rounded-xl bg-surface-light">
-                <div>
-                  <p className="text-sm font-medium">{s.name}</p>
-                  <p className="text-xs text-text-muted">{s.type} | {s.items} items | Last sync: {s.lastSync}</p>
+          {loading ? (
+            <div className="space-y-3">{[1, 2, 3].map((i) => <div key={i} className="skeleton h-16 rounded-lg" />)}</div>
+          ) : (
+            <div className="space-y-3">
+              {sources.map((s: any) => (
+                <div key={s.name} className="flex items-center justify-between p-3 rounded-xl bg-surface-light">
+                  <div>
+                    <p className="text-sm font-medium">{s.name}</p>
+                    <p className="text-xs text-text-muted">{s.type} | {s.items} items | Last sync: {s.lastSync}</p>
+                  </div>
+                  <Badge variant="success" size="sm">{s.status}</Badge>
                 </div>
-                <Badge variant="success" size="sm">{s.status}</Badge>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </Card>
       </motion.div>
     </motion.div>

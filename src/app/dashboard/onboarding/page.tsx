@@ -1,31 +1,29 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { ClipboardCheck, Plus } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { Plus } from 'lucide-react'
 import { staggerContainer, staggerItem } from '@/lib/motion'
 import { PageHeader } from '@/components/ui/card'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
 import Timeline from '@/components/ui/timeline'
-import Badge from '@/components/ui/badge'
 import { useToast } from '@/components/ui/toast'
 
-const onboardingSteps = [
-  { id: '1', title: 'Registration', description: 'Customer completes registration form', status: 'completed', time: 'Day 0' },
-  { id: '2', title: 'Payment', description: 'Payment processed and confirmed', status: 'completed', time: 'Day 0' },
-  { id: '3', title: 'Welcome Email', description: 'Welcome email with programme details sent', status: 'completed', time: 'Day 0' },
-  { id: '4', title: 'Forms', description: 'Pre-programme assessment forms completed', status: 'active', time: 'Day 1' },
-  { id: '5', title: 'Orientation', description: 'Virtual orientation session', status: 'pending', time: 'Day 2' },
-  { id: '6', title: 'Resource Access', description: 'Programme materials and portal access granted', status: 'pending', time: 'Day 3' },
-  { id: '7', title: 'Calendar Invite', description: 'Session calendar invites sent', status: 'pending', time: 'Day 3' },
-  { id: '8', title: 'First Activity', description: 'First learning activity completed', status: 'pending', time: 'Day 5' },
-  { id: '9', title: 'Completion', description: 'Onboarding flow completed successfully', status: 'pending', time: 'Day 7' },
-]
-
 export default function OnboardingPage() {
-  const router = useRouter()
   const { toast } = useToast()
+  const [onboardingSteps, setOnboardingSteps] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/crm')
+      .then((res) => res.json())
+      .then((d) => {
+        setOnboardingSteps(d.items || d.onboardingSteps || d.data || [])
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [])
 
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
@@ -40,7 +38,11 @@ export default function OnboardingPage() {
       <motion.div variants={staggerItem}>
         <Card padding="md">
           <h3 className="text-sm font-semibold mb-6">Onboarding Workflow</h3>
-          <Timeline items={onboardingSteps.map(s => ({ ...s, icon: s.status === 'completed' ? <span className="text-white text-xs">✓</span> : undefined }))} />
+          {loading ? (
+            <div className="space-y-3">{[1, 2, 3, 4, 5].map((i) => <div key={i} className="skeleton h-12 rounded-lg" />)}</div>
+          ) : (
+            <Timeline items={onboardingSteps.map((s: any) => ({ ...s, icon: s.status === 'completed' ? <span className="text-white text-xs">✓</span> : undefined }))} />
+          )}
         </Card>
       </motion.div>
     </motion.div>

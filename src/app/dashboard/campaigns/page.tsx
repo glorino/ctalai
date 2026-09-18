@@ -1,24 +1,28 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Megaphone, Plus } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { Plus } from 'lucide-react'
 import { staggerContainer, staggerItem } from '@/lib/motion'
 import { PageHeader } from '@/components/ui/card'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
-import EmptyState from '@/components/ui/empty-state'
 import { useToast } from '@/components/ui/toast'
 
-const campaigns = [
-  { name: 'August Webinar Series', type: 'EMAIL', status: 'ACTIVE', reach: 2840, engagement: '42%', conversions: 124 },
-  { name: 'Referral Programme', type: 'MULTI', status: 'ACTIVE', reach: 1200, engagement: '35%', conversions: 56 },
-  { name: 'LinkedIn Thought Leadership', type: 'SOCIAL', status: 'ACTIVE', reach: 5400, engagement: '28%', conversions: 34 },
-]
-
 export default function CampaignsPage() {
-  const router = useRouter()
   const { toast } = useToast()
+  const [campaigns, setCampaigns] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/campaigns')
+      .then((res) => res.json())
+      .then((d) => {
+        setCampaigns(d.items || d.campaigns || d.data || [])
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [])
 
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
@@ -32,20 +36,24 @@ export default function CampaignsPage() {
       </motion.div>
       <motion.div variants={staggerItem}>
         <Card padding="md">
-          <div className="space-y-3">
-            {campaigns.map((c) => (
-              <div key={c.name} className="flex items-center justify-between p-3 rounded-xl bg-surface-light">
-                <div>
-                  <p className="text-sm font-medium">{c.name}</p>
-                  <p className="text-xs text-text-muted">{c.type} | Reach: {c.reach.toLocaleString()}</p>
+          {loading ? (
+            <div className="space-y-3">{[1, 2, 3].map((i) => <div key={i} className="skeleton h-16 rounded-lg" />)}</div>
+          ) : (
+            <div className="space-y-3">
+              {campaigns.map((c: any) => (
+                <div key={c.name} className="flex items-center justify-between p-3 rounded-xl bg-surface-light">
+                  <div>
+                    <p className="text-sm font-medium">{c.name}</p>
+                    <p className="text-xs text-text-muted">{c.type} | Reach: {c.reach?.toLocaleString()}</p>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="text-sm">{c.engagement}</span>
+                    <span className="text-sm font-semibold">{c.conversions} conversions</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-4">
-                  <span className="text-sm">{c.engagement}</span>
-                  <span className="text-sm font-semibold">{c.conversions} conversions</span>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </Card>
       </motion.div>
     </motion.div>

@@ -1,25 +1,28 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { TrendingUp, Plus } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { Plus } from 'lucide-react'
 import { staggerContainer, staggerItem } from '@/lib/motion'
 import { PageHeader } from '@/components/ui/card'
 import Button from '@/components/ui/button'
-import Card from '@/components/ui/card'
 import KanbanBoard from '@/components/ui/kanban-board'
 import { useToast } from '@/components/ui/toast'
 
-const columns = [
-  { id: 'new', title: 'New', color: 'bg-blue-400', items: [{ id: '1', title: 'Enterprise Package', subtitle: '₦4.2M' }, { id: '2', title: 'Corporate Training', subtitle: '₦1.8M' }] },
-  { id: 'qualified', title: 'Qualified', color: 'bg-amber-400', items: [{ id: '3', title: 'Leadership Programme', subtitle: '₦3.5M' }] },
-  { id: 'proposal', title: 'Proposal', color: 'bg-emerald-400', items: [{ id: '4', title: 'Marketing Workshop', subtitle: '₦850K' }] },
-  { id: 'won', title: 'Won', color: 'bg-emerald-600', items: [{ id: '5', title: 'TechCorp Training', subtitle: '₦2.4M' }] },
-]
-
 export default function PipelinePage() {
-  const router = useRouter()
   const { toast } = useToast()
+  const [columns, setColumns] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/pipeline')
+      .then((res) => res.json())
+      .then((d) => {
+        setColumns(d.columns || d.items || d.data || [])
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [])
 
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
@@ -32,7 +35,19 @@ export default function PipelinePage() {
         />
       </motion.div>
       <motion.div variants={staggerItem}>
-        <KanbanBoard columns={columns} />
+        {loading ? (
+          <div className="grid grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="space-y-3">
+                <div className="skeleton h-8 rounded-lg" />
+                <div className="skeleton h-20 rounded-lg" />
+                <div className="skeleton h-20 rounded-lg" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <KanbanBoard columns={columns} />
+        )}
       </motion.div>
     </motion.div>
   )

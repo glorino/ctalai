@@ -1,23 +1,28 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Zap, Plus } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { Plus } from 'lucide-react'
 import { staggerContainer, staggerItem } from '@/lib/motion'
 import { PageHeader } from '@/components/ui/card'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
 import { useToast } from '@/components/ui/toast'
 
-const opportunities = [
-  { name: 'NPA Enterprise Training', value: '₦8.5M', stage: 'Negotiation', probability: 75, owner: 'Chioma' },
-  { name: 'LBS Research Partnership', value: '₦4.2M', stage: 'Proposal', probability: 60, owner: 'Emeka' },
-  { name: 'TechStart Onboarding', value: '₦2.4M', stage: 'Discovery', probability: 40, owner: 'Chioma' },
-]
-
 export default function OpportunitiesPage() {
-  const router = useRouter()
   const { toast } = useToast()
+  const [opportunities, setOpportunities] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/opportunities')
+      .then((res) => res.json())
+      .then((d) => {
+        setOpportunities(d.items || d.opportunities || d.data || [])
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [])
 
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
@@ -31,17 +36,21 @@ export default function OpportunitiesPage() {
       </motion.div>
       <motion.div variants={staggerItem}>
         <Card padding="md">
-          <div className="space-y-3">
-            {opportunities.map((opp) => (
-              <div key={opp.name} className="flex items-center justify-between p-3 rounded-xl bg-surface-light">
-                <div>
-                  <p className="text-sm font-medium">{opp.name}</p>
-                  <p className="text-xs text-text-muted">{opp.stage} | Owner: {opp.owner} | {opp.probability}% probability</p>
+          {loading ? (
+            <div className="space-y-3">{[1, 2, 3].map((i) => <div key={i} className="skeleton h-16 rounded-lg" />)}</div>
+          ) : (
+            <div className="space-y-3">
+              {opportunities.map((opp: any) => (
+                <div key={opp.name} className="flex items-center justify-between p-3 rounded-xl bg-surface-light">
+                  <div>
+                    <p className="text-sm font-medium">{opp.name}</p>
+                    <p className="text-xs text-text-muted">{opp.stage} | Owner: {opp.owner} | {opp.probability}% probability</p>
+                  </div>
+                  <span className="text-sm font-semibold">{opp.value}</span>
                 </div>
-                <span className="text-sm font-semibold">{opp.value}</span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </Card>
       </motion.div>
     </motion.div>
