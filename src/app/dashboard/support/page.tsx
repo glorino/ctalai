@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
@@ -22,6 +22,8 @@ import Tabs from '@/components/ui/tabs'
 import AIInsight from '@/components/ui/ai-insight'
 import Dropdown from '@/components/ui/dropdown'
 import { useToast } from '@/components/ui/toast'
+import Input from '@/components/ui/input'
+import Select from '@/components/ui/select'
 
 interface Ticket {
   id: string
@@ -63,7 +65,12 @@ export default function SupportPage() {
   const { toast } = useToast()
   const router = useRouter()
 
-  useEffect(() => {
+  const [showForm, setShowForm] = useState(false)
+  const [formData, setFormData] = useState({ customerId: '', subject: '', description: '', category: 'GENERAL', priority: 'MEDIUM' })
+  const [submitting, setSubmitting] = useState(false)
+  const [customers, setCustomers] = useState<{ id: string; name: string }[]>([])
+
+  const fetchData = useCallback(() => {
     fetch('/api/support')
       .then((res) => res.json())
       .then((d) => {
@@ -73,6 +80,42 @@ export default function SupportPage() {
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => { fetchData() }, [fetchData])
+
+  useEffect(() => {
+    fetch('/api/crm')
+      .then((res) => res.json())
+      .then((data) => setCustomers((data.customers || []).map((c: any) => ({ id: c.id, name: c.name }))))
+      .catch(console.error)
+  }, [])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!formData.customerId) { toast('Customer is required', 'error'); return }
+    if (!formData.subject.trim()) { toast('Subject is required', 'error'); return }
+    setSubmitting(true)
+    try {
+      const res = await fetch('/api/support', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      })
+      if (res.ok) {
+        toast('Ticket created successfully', 'success')
+        setShowForm(false)
+        setFormData({ customerId: '', subject: '', description: '', category: 'GENERAL', priority: 'MEDIUM' })
+        fetchData()
+      } else {
+        const data = await res.json()
+        toast(data.error || 'Failed to create ticket', 'error')
+      }
+    } catch {
+      toast('Failed to create ticket', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   const openCount = data?.stats.find((s) => s.status === 'OPEN')?._count || 0
   const progressCount = data?.stats.find((s) => s.status === 'IN_PROGRESS')?._count || 0
@@ -85,7 +128,7 @@ export default function SupportPage() {
           title="Support"
           description="Customer support tickets and helpdesk"
           breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Support' }]}
-          actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => toast('Create ticket form coming soon', 'info')}>New Ticket</Button>}
+          actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowForm(true)}>New Ticket</Button>}
         />
       </motion.div>
 
@@ -192,6 +235,26 @@ export default function SupportPage() {
           </AIInsight>
         </motion.div>
       </div>
+
+      {showForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowForm(false)} />
+          <div className="relative w-full max-w-lg bg-surface border border-border rounded-2xl p-6 shadow-xl">
+            <h2 className="text-lg font-semibold mb-4">Create Ticket</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Select label="Customer" value={formData.customerId} onChange={(e) => setFormData({ ...formData, customerId: e.target.value })} placeholder="Select customer" options={customers.map((c) => ({ value: c.id, label: c.name }))} />
+              <Input label="Subject" required value={formData.subject} onChange={(e) => setFormData({ ...formData, subject: e.target.value })} placeholder="Ticket subject" />
+              <Input label="Description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Describe the issue" />
+              <Select label="Category" value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} options={[{ value: 'TECHNICAL', label: 'Technical' }, { value: 'GENERAL', label: 'General' }, { value: 'PROGRAMME', label: 'Programme' }, { value: 'PAYMENT', label: 'Payment' }, { value: 'REGISTRATION', label: 'Registration' }, { value: 'SCHEDULE', label: 'Schedule' }, { value: 'CERTIFICATE', label: 'Certificate' }]} />
+              <Select label="Priority" value={formData.priority} onChange={(e) => setFormData({ ...formData, priority: e.target.value })} options={[{ value: 'LOW', label: 'Low' }, { value: 'MEDIUM', label: 'Medium' }, { value: 'HIGH', label: 'High' }, { value: 'URGENT', label: 'Urgent' }]} />
+              <div className="flex gap-2 justify-end">
+                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
+                <Button type="submit" isLoading={submitting}>Create</Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </motion.div>
   )
 }

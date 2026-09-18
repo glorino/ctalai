@@ -22,3 +22,27 @@ export async function GET() {
     return NextResponse.json({ error: 'Failed to fetch support data' }, { status: 500 })
   }
 }
+
+export async function POST(request: Request) {
+  try {
+    const data = await request.json()
+    const ticket = await prisma.supportTicket.create({
+      data: {
+        customerId: data.customerId,
+        subject: data.subject,
+        description: data.description,
+        category: data.category || 'GENERAL',
+        priority: data.priority || 'MEDIUM',
+        status: 'OPEN',
+      },
+      include: {
+        customer: { select: { name: true, email: true } },
+        responses: { orderBy: { createdAt: 'desc' }, take: 1 },
+      },
+    })
+    return NextResponse.json(ticket, { status: 201 })
+  } catch (error) {
+    console.error('Ticket create error:', error)
+    return NextResponse.json({ error: 'Failed to create ticket' }, { status: 500 })
+  }
+}

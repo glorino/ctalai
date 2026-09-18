@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
@@ -22,6 +22,8 @@ import Tabs from '@/components/ui/tabs'
 import Dropdown from '@/components/ui/dropdown'
 import AIInsight from '@/components/ui/ai-insight'
 import { useToast } from '@/components/ui/toast'
+import Input from '@/components/ui/input'
+import Select from '@/components/ui/select'
 
 interface Lead {
   id: string
@@ -61,7 +63,11 @@ export default function LeadsPage() {
   const router = useRouter()
   const [stats, setStats] = useState<{ status: string; _count: number }[]>([])
 
-  useEffect(() => {
+  const [showForm, setShowForm] = useState(false)
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '', company: '', source: 'WEBSITE', value: '', notes: '' })
+  const [submitting, setSubmitting] = useState(false)
+
+  const fetchData = useCallback(() => {
     fetch('/api/leads')
       .then((res) => res.json())
       .then((data) => {
@@ -71,6 +77,34 @@ export default function LeadsPage() {
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => { fetchData() }, [fetchData])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!formData.name.trim()) { toast('Name is required', 'error'); return }
+    setSubmitting(true)
+    try {
+      const res = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      })
+      if (res.ok) {
+        toast('Lead created successfully', 'success')
+        setShowForm(false)
+        setFormData({ name: '', email: '', phone: '', company: '', source: 'WEBSITE', value: '', notes: '' })
+        fetchData()
+      } else {
+        const data = await res.json()
+        toast(data.error || 'Failed to create lead', 'error')
+      }
+    } catch {
+      toast('Failed to create lead', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   const newCount = stats.find((s) => s.status === 'NEW')?._count || 0
   const qualifiedCount = stats.find((s) => s.status === 'QUALIFIED')?._count || 0
@@ -131,7 +165,7 @@ export default function LeadsPage() {
           title="Leads"
           description="Lead generation and pipeline management"
           breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Leads' }]}
-          actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => toast('Add lead form coming soon', 'info')}>Add Lead</Button>}
+          actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowForm(true)}>Add Lead</Button>}
         />
       </motion.div>
 
@@ -190,6 +224,28 @@ export default function LeadsPage() {
           </div>
         </div>
       </motion.div>
+
+      {showForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowForm(false)} />
+          <div className="relative w-full max-w-lg bg-surface border border-border rounded-2xl p-6 shadow-xl">
+            <h2 className="text-lg font-semibold mb-4">Create Lead</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Input label="Name" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Full name" />
+              <Input label="Email" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="email@example.com" />
+              <Input label="Phone" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="+234..." />
+              <Input label="Company" value={formData.company} onChange={(e) => setFormData({ ...formData, company: e.target.value })} placeholder="Company name" />
+              <Select label="Source" value={formData.source} onChange={(e) => setFormData({ ...formData, source: e.target.value })} options={[{ value: 'WEBSITE', label: 'Website' }, { value: 'WEBINAR', label: 'Webinar' }, { value: 'REFERRAL', label: 'Referral' }, { value: 'SOCIAL_MEDIA', label: 'Social Media' }, { value: 'LANDING_PAGE', label: 'Landing Page' }, { value: 'ORGANIC', label: 'Organic' }, { value: 'PAID_AD', label: 'Paid Ad' }, { value: 'EVENT', label: 'Event' }]} />
+              <Input label="Value" type="number" value={formData.value} onChange={(e) => setFormData({ ...formData, value: e.target.value })} placeholder="0" />
+              <Input label="Notes" value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="Additional notes" />
+              <div className="flex gap-2 justify-end">
+                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
+                <Button type="submit" isLoading={submitting}>Create</Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </motion.div>
   )
 }

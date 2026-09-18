@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { CreditCard, ExternalLink } from 'lucide-react'
+import { CreditCard, ExternalLink, Download } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
+import { generateInvoicePDF } from '@/lib/invoice-pdf'
 import Modal from '@/components/ui/modal'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
@@ -16,6 +17,9 @@ interface PaymentModalProps {
   customerEmail: string
   customerName: string
   invoiceNumber?: string
+  description?: string
+  dueDate?: string
+  status?: string
 }
 
 export default function PaymentModal({
@@ -26,9 +30,25 @@ export default function PaymentModal({
   customerEmail,
   customerName,
   invoiceNumber,
+  description,
+  dueDate,
+  status,
 }: PaymentModalProps) {
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
+
+  const downloadInvoice = () => {
+    generateInvoicePDF({
+      invoiceNumber: invoiceNumber || invoiceId.slice(0, 8),
+      customerName,
+      customerEmail,
+      amount,
+      description: description || 'Programme Fee',
+      dueDate: dueDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-NG'),
+      status: status || 'SENT',
+    })
+    toast('Invoice PDF downloaded', 'success')
+  }
 
   const initializePayment = async () => {
     setLoading(true)
@@ -102,6 +122,13 @@ export default function PaymentModal({
             disabled={loading}
           >
             Cancel
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={downloadInvoice}
+            leftIcon={<Download className="w-4 h-4" />}
+          >
+            Download Invoice
           </Button>
           <Button
             className="flex-1"

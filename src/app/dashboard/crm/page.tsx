@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
@@ -23,6 +23,8 @@ import Tabs from '@/components/ui/tabs'
 import Dropdown from '@/components/ui/dropdown'
 import AIInsight from '@/components/ui/ai-insight'
 import { useToast } from '@/components/ui/toast'
+import Input from '@/components/ui/input'
+import Select from '@/components/ui/select'
 
 interface Customer {
   id: string
@@ -60,7 +62,11 @@ export default function CRMPage() {
   const { toast } = useToast()
   const router = useRouter()
 
-  useEffect(() => {
+  const [showForm, setShowForm] = useState(false)
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '', organisation: '', customerType: 'INDIVIDUAL', source: '', tags: '' })
+  const [submitting, setSubmitting] = useState(false)
+
+  const fetchData = useCallback(() => {
     fetch('/api/crm')
       .then((res) => res.json())
       .then((data) => {
@@ -70,6 +76,34 @@ export default function CRMPage() {
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => { fetchData() }, [fetchData])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!formData.name.trim()) { toast('Name is required', 'error'); return }
+    setSubmitting(true)
+    try {
+      const res = await fetch('/api/crm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...formData, tags: formData.tags ? formData.tags.split(',').map((t: string) => t.trim()) : [] }),
+      })
+      if (res.ok) {
+        toast('Customer created successfully', 'success')
+        setShowForm(false)
+        setFormData({ name: '', email: '', phone: '', organisation: '', customerType: 'INDIVIDUAL', source: '', tags: '' })
+        fetchData()
+      } else {
+        const data = await res.json()
+        toast(data.error || 'Failed to create customer', 'error')
+      }
+    } catch {
+      toast('Failed to create customer', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   const activeCount = stats.find((s) => s.status === 'ACTIVE')?._count || 0
   const prospectCount = stats.find((s) => s.status === 'PROSPECT')?._count || 0
@@ -124,7 +158,7 @@ export default function CRMPage() {
           title="CRM"
           description="Manage your customer relationships"
           breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'CRM' }]}
-          actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => toast('Add customer form coming soon', 'info')}>Add Customer</Button>}
+          actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowForm(true)}>Add Customer</Button>}
         />
       </motion.div>
 
@@ -184,6 +218,28 @@ export default function CRMPage() {
           </div>
         </div>
       </motion.div>
+
+      {showForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowForm(false)} />
+          <div className="relative w-full max-w-lg bg-surface border border-border rounded-2xl p-6 shadow-xl">
+            <h2 className="text-lg font-semibold mb-4">Create Customer</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Input label="Name" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Full name" />
+              <Input label="Email" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="email@example.com" />
+              <Input label="Phone" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} placeholder="+234..." />
+              <Input label="Organisation" value={formData.organisation} onChange={(e) => setFormData({ ...formData, organisation: e.target.value })} placeholder="Company name" />
+              <Select label="Customer Type" value={formData.customerType} onChange={(e) => setFormData({ ...formData, customerType: e.target.value })} options={[{ value: 'INDIVIDUAL', label: 'Individual' }, { value: 'CORPORATE', label: 'Corporate' }, { value: 'ORGANISATION', label: 'Organisation' }, { value: 'NGO', label: 'NGO' }, { value: 'GOVERNMENT', label: 'Government' }]} />
+              <Input label="Source" value={formData.source} onChange={(e) => setFormData({ ...formData, source: e.target.value })} placeholder="e.g. Referral, Website" />
+              <Input label="Tags" value={formData.tags} onChange={(e) => setFormData({ ...formData, tags: e.target.value })} placeholder="Comma separated tags" />
+              <div className="flex gap-2 justify-end">
+                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
+                <Button type="submit" isLoading={submitting}>Create</Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </motion.div>
   )
 }
