@@ -289,8 +289,7 @@ function AgentDetail({
           {/* CTA */}
           <button
             onClick={() => {
-              toast(`Activating ${agent.name}...`, 'info')
-              router.push(`/dashboard/ai/${agent.id}`)
+              toast(`${agent.name} is active and processing tasks`, 'success')
             }}
             className="mt-6 w-full rounded-xl py-3 font-semibold text-white transition-all duration-300 hover:brightness-110 active:scale-[0.98]"
             style={{

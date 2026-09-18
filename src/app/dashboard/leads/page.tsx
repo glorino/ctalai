@@ -179,7 +179,7 @@ export default function LeadsPage() {
                       </button>
                     }
                     items={[
-                      { label: 'View Details', onClick: () => router.push(`/dashboard/leads/${item.id}`), icon: <Target className="w-4 h-4" /> },
+                      { label: 'View Details', onClick: () => toast(`Lead: ${item.name} — ${item.company || 'N/A'}`, 'info'), icon: <Target className="w-4 h-4" /> },
                       { label: 'Assign', onClick: () => toast('Assignment feature coming soon', 'info'), icon: <UserPlus className="w-4 h-4" /> },
                       { label: 'Convert to Customer', onClick: () => toast('Converting lead to customer...', 'info'), icon: <TrendingUp className="w-4 h-4" /> },
                     ]}

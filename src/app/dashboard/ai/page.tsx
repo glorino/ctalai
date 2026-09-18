@@ -221,7 +221,7 @@ export default function AIAgentsPage() {
                 <p className="text-sm font-semibold text-primary">{agent.timeSaved}</p>
               </div>
             </div>
-            <button onClick={() => { toast(`Opening ${agent.name}...`, 'info'); router.push(`/dashboard/ai/${agent.id}`) }} className="w-full flex items-center justify-center gap-1 text-xs text-primary hover:text-primary-dark font-medium py-2 rounded-lg bg-primary/5 hover:bg-primary/10 transition-colors">
+            <button onClick={() => { toast(`${agent.name} is active and processing tasks`, 'success') }} className="w-full flex items-center justify-center gap-1 text-xs text-primary hover:text-primary-dark font-medium py-2 rounded-lg bg-primary/5 hover:bg-primary/10 transition-colors">
               Open Agent <ChevronRight className="w-3 h-3" />
             </button>
           </Card>

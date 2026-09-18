@@ -103,7 +103,7 @@ export default function ProgrammesPage() {
               )}
               <div className="flex items-center justify-between mt-4">
                 <span className="text-sm font-semibold gradient-text">{prog._count.enrollments} enrolled</span>
-                <button onClick={() => router.push(`/dashboard/programs/${prog.id}`)} className="text-xs text-primary hover:text-primary-dark flex items-center gap-1">
+                <button onClick={() => toast(`Programme: ${prog.name} — ${prog._count.enrollments} enrolled`, 'info')} className="text-xs text-primary hover:text-primary-dark flex items-center gap-1">
                   View Details <ChevronRight className="w-3 h-3" />
                 </button>
               </div>
