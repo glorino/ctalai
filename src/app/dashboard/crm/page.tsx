@@ -193,8 +193,8 @@ export default function CRMPage() {
               <div className="space-y-3">{[1, 2, 3, 4].map((i) => <div key={i} className="skeleton h-14 rounded-lg" />)}</div>
             ) : (
               <DataTable
-                columns={columns}
-                data={filtered}
+                columns={columns as any}
+                data={filtered as any}
                 searchable
                 searchPlaceholder="Search customers..."
                 searchKey="name"

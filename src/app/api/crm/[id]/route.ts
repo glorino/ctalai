@@ -10,7 +10,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         owner: { select: { name: true } },
         enrollments: {
           include: {
-            programme: { select: { name: true } },
+            program: { select: { name: true } },
             cohort: { select: { name: true } },
           },
         },
@@ -22,7 +22,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
           orderBy: { createdAt: 'desc' },
           take: 10,
         },
-        _count: { select: { interactions: true, invoices: true, enrollments: true, tickets: true } },
+        _count: { select: { interactions: true, invoices: true, enrollments: true, supportTickets: true } },
       },
     })
 

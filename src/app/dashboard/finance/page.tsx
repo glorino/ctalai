@@ -166,12 +166,12 @@ export default function FinancePage() {
               <div className="space-y-3">{[1, 2, 3, 4].map((i) => <div key={i} className="skeleton h-12 rounded-lg" />)}</div>
             ) : (
               <DataTable
-                columns={columns}
-                data={data?.invoices || []}
+                columns={columns as any}
+                data={(data?.invoices || []) as any}
                 searchable
                 searchPlaceholder="Search invoices..."
                 searchKey="invoiceNumber"
-                actions={(item) =>
+                actions={(item: any) =>
                   canPay(item.status) ? (
                     <Button
                       size="xs"

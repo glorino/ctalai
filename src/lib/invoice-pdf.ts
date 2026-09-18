@@ -61,7 +61,7 @@ export function generateInvoicePDF(invoice: InvoiceData): void {
   doc.line(20, 102, 190, 102)
   
   doc.setFontSize(14)
-  doc.setFont(undefined, 'bold')
+  doc.setFont('helvetica', 'bold')
   doc.text('Total:', 120, 112)
   doc.text(`\u20A6${invoice.amount.toLocaleString()}`, 150, 112)
   

@@ -25,7 +25,7 @@ interface PartnerData {
   _count: { agreements: number; meetings: number }
 }
 
-const statusVariant: Record<string, 'success' | 'warning' | 'primary' | 'neutral'> = {
+const statusVariant: Record<string, 'success' | 'warning' | 'primary' | 'neutral' | 'error'> = {
   ACTIVE: 'success',
   PROSPECT: 'primary',
   INACTIVE: 'neutral',

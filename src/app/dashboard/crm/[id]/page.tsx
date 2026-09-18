@@ -56,7 +56,7 @@ interface CustomerData {
     description: string | null
     createdAt: string
   }>
-  _count: { interactions: number; invoices: number; enrollments: number; tickets: number }
+  _count: { interactions: number; invoices: number; enrollments: number; supportTickets: number }
 }
 
 export default function CustomerDetailPage() {
@@ -140,7 +140,7 @@ export default function CustomerDetailPage() {
             <div className="flex items-center gap-2 flex-wrap">
               {customer.email && <Button variant="outline" size="sm" leftIcon={<Mail className="w-4 h-4" />} onClick={() => window.open(`mailto:${customer.email}`)}>Email</Button>}
               {customer.phone && <Button variant="outline" size="sm" leftIcon={<Phone className="w-4 h-4" />} onClick={() => window.open(`tel:${customer.phone}`)}>Call</Button>}
-              {customer.phone && <Button variant="outline" size="sm" leftIcon={<MessageSquare className="w-4 h-4" />} onClick={() => window.open(`https://wa.me/${customer.phone.replace(/\D/g, '')}`, '_blank')}>WhatsApp</Button>}
+              {customer.phone && <Button variant="outline" size="sm" leftIcon={<MessageSquare className="w-4 h-4" />} onClick={() => window.open(`https://wa.me/${(customer.phone as string).replace(/\D/g, '')}`, '_blank')}>WhatsApp</Button>}
               <Dropdown
                 trigger={<button className="p-2 rounded-lg border border-border text-text-muted hover:bg-surface-light"><MoreHorizontal className="w-4 h-4" /></button>}
                 items={[

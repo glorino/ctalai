@@ -19,7 +19,7 @@ async function getBusinessContext() {
       prisma.payment.aggregate({ where: { status: 'SUCCESSFUL' }, _sum: { amount: true } }),
       prisma.lead.findMany({ take: 5, orderBy: { createdAt: 'desc' }, select: { name: true, source: true, score: true, status: true } }),
       prisma.program.findMany({ where: { isActive: true }, select: { name: true, _count: { select: { enrollments: true } } } }),
-      prisma.supportTicket.findMany({ where: { status: { in: ['OPEN', 'URGENT'] } }, take: 5, select: { subject: true, priority: true, status: true } }),
+      prisma.supportTicket.findMany({ where: { status: { in: ['OPEN', 'IN_PROGRESS'] } }, take: 5, select: { subject: true, priority: true, status: true } }),
     ])
 
     return `
