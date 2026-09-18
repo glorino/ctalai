@@ -47,7 +47,7 @@ import {
   CheckCircle2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { ToastProvider } from '@/components/ui/toast'
+import { useToast } from '@/components/ui/toast'
 
 interface NavSection {
   label: string
@@ -206,8 +206,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [handleSearchShortcut])
 
   return (
-    <ToastProvider>
-      <div className="min-h-screen bg-surface-light flex">
+    <div className="min-h-screen bg-surface-light flex">
         {/* Desktop Sidebar */}
         <aside
           className={cn(
@@ -529,14 +528,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           )}
         </AnimatePresence>
-      </div>
 
-      {layoutToast && (
-        <div className="fixed bottom-4 right-4 z-[100] px-4 py-3 rounded-xl bg-surface border border-border shadow-lg text-sm flex items-center gap-2 pointer-events-none">
-          <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-          {layoutToast}
-        </div>
-      )}
-    </ToastProvider>
+        {layoutToast && (
+          <div className="fixed bottom-4 right-4 z-[100] px-4 py-3 rounded-xl bg-surface border border-border shadow-lg text-sm flex items-center gap-2 pointer-events-none">
+            <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+            {layoutToast}
+          </div>
+        )}
+      </div>
   )
 }
