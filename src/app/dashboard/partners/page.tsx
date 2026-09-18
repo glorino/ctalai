@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { Handshake, Plus, TrendingUp, Calendar, FileText, AlertCircle, ChevronRight } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { staggerContainer, staggerItem } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { PageHeader, StatCard } from '@/components/ui/card'
@@ -10,6 +11,7 @@ import Button from '@/components/ui/button'
 import Avatar from '@/components/ui/avatar'
 import Card from '@/components/ui/card'
 import AIInsight from '@/components/ui/ai-insight'
+import { useToast } from '@/components/ui/toast'
 
 const partners = [
   { name: 'Lagos Business School', type: 'ACADEMIC', status: 'ACTIVE', agreements: 2, value: '₦4.2M', meetings: 8, nextReview: '15 Sep 2025' },
@@ -34,6 +36,9 @@ const stats = [
 ]
 
 export default function PartnersPage() {
+  const router = useRouter()
+  const { toast } = useToast()
+
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
       <motion.div variants={staggerItem}>
@@ -41,7 +46,7 @@ export default function PartnersPage() {
           title="Partnerships"
           description="Partner management, agreements, and opportunities"
           breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Partners' }]}
-          actions={<Button leftIcon={<Plus className="w-4 h-4" />}>Add Partner</Button>}
+          actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => toast('Add partner form coming soon', 'info')}>Add Partner</Button>}
         />
       </motion.div>
 

@@ -2,10 +2,12 @@
 
 import { motion } from 'framer-motion'
 import { Zap, Plus } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { staggerContainer, staggerItem } from '@/lib/motion'
 import { PageHeader } from '@/components/ui/card'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
+import { useToast } from '@/components/ui/toast'
 
 const opportunities = [
   { name: 'NPA Enterprise Training', value: '₦8.5M', stage: 'Negotiation', probability: 75, owner: 'Chioma' },
@@ -14,6 +16,9 @@ const opportunities = [
 ]
 
 export default function OpportunitiesPage() {
+  const router = useRouter()
+  const { toast } = useToast()
+
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
       <motion.div variants={staggerItem}>
@@ -21,7 +26,7 @@ export default function OpportunitiesPage() {
           title="Opportunities"
           description="Track sales opportunities"
           breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Opportunities' }]}
-          actions={<Button leftIcon={<Plus className="w-4 h-4" />}>New Opportunity</Button>}
+          actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => toast('Create opportunity form coming soon', 'info')}>New Opportunity</Button>}
         />
       </motion.div>
       <motion.div variants={staggerItem}>

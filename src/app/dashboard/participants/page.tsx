@@ -2,12 +2,14 @@
 
 import { motion } from 'framer-motion'
 import { UserCheck, Plus } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { staggerContainer, staggerItem } from '@/lib/motion'
 import { PageHeader } from '@/components/ui/card'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
 import Avatar from '@/components/ui/avatar'
 import Badge from '@/components/ui/badge'
+import { useToast } from '@/components/ui/toast'
 
 const participants = [
   { name: 'Adebayo Ogundimu', programme: 'Advanced Valuation', cohort: 'Cohort 7', progress: 78, status: 'IN_PROGRESS' },
@@ -17,6 +19,9 @@ const participants = [
 ]
 
 export default function ParticipantsPage() {
+  const router = useRouter()
+  const { toast } = useToast()
+
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
       <motion.div variants={staggerItem}>
@@ -24,7 +29,7 @@ export default function ParticipantsPage() {
           title="Participants"
           description="Manage programme participants"
           breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Participants' }]}
-          actions={<Button leftIcon={<Plus className="w-4 h-4" />}>Add Participant</Button>}
+          actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => toast('Add participant form coming soon', 'info')}>Add Participant</Button>}
         />
       </motion.div>
       <motion.div variants={staggerItem}>

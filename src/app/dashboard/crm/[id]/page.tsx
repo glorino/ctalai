@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
   ArrowLeft,
@@ -81,6 +82,7 @@ const invoices = [
 export default function CustomerDetailPage() {
   const [activeTab, setActiveTab] = useState('overview')
   const { toast } = useToast()
+  const router = useRouter()
 
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
@@ -115,9 +117,9 @@ export default function CustomerDetailPage() {
               </div>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
-              <Button variant="outline" size="sm" leftIcon={<Mail className="w-4 h-4" />} onClick={() => toast('Email composer opening...', 'info')}>Email</Button>
-              <Button variant="outline" size="sm" leftIcon={<Phone className="w-4 h-4" />} onClick={() => toast('Initiating call...', 'info')}>Call</Button>
-              <Button variant="outline" size="sm" leftIcon={<MessageSquare className="w-4 h-4" />} onClick={() => toast('WhatsApp opening...', 'info')}>WhatsApp</Button>
+              <Button variant="outline" size="sm" leftIcon={<Mail className="w-4 h-4" />} onClick={() => { window.location.href = `mailto:${customer.email}` }}>Email</Button>
+              <Button variant="outline" size="sm" leftIcon={<Phone className="w-4 h-4" />} onClick={() => { window.location.href = `tel:${customer.phone}` }}>Call</Button>
+              <Button variant="outline" size="sm" leftIcon={<MessageSquare className="w-4 h-4" />} onClick={() => { window.open(`https://wa.me/${customer.phone.replace(/\D/g, '')}`, '_blank') }}>WhatsApp</Button>
               <Dropdown
                 trigger={<button className="p-2 rounded-lg border border-border text-text-muted hover:bg-surface-light"><MoreHorizontal className="w-4 h-4" /></button>}
                 items={[

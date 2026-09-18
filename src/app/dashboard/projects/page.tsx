@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { FolderKanban, Plus, CheckCircle2, AlertTriangle, Users } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { staggerContainer, staggerItem } from '@/lib/motion'
 import { formatCurrency } from '@/lib/utils'
 import { PageHeader, StatCard } from '@/components/ui/card'
@@ -10,6 +11,7 @@ import Badge from '@/components/ui/badge'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
 import Progress from '@/components/ui/progress'
+import { useToast } from '@/components/ui/toast'
 
 interface Project {
   id: string
@@ -36,6 +38,8 @@ const statusVariant: Record<string, 'primary' | 'warning' | 'success' | 'neutral
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
+  const router = useRouter()
+  const { toast } = useToast()
 
   useEffect(() => {
     fetch('/api/projects')
@@ -56,7 +60,7 @@ export default function ProjectsPage() {
           title="Projects"
           description="Project management and task tracking"
           breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Projects' }]}
-          actions={<Button leftIcon={<Plus className="w-4 h-4" />}>New Project</Button>}
+          actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => toast('Create project form coming soon', 'info')}>New Project</Button>}
         />
       </motion.div>
 

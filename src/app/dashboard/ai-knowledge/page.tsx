@@ -2,12 +2,14 @@
 
 import { motion } from 'framer-motion'
 import { Brain, Upload, Plus } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { staggerContainer, staggerItem } from '@/lib/motion'
 import { PageHeader } from '@/components/ui/card'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
 import Badge from '@/components/ui/badge'
 import AIInsight from '@/components/ui/ai-insight'
+import { useToast } from '@/components/ui/toast'
 
 const sources = [
   { name: 'Programme Catalogue', type: 'Document', items: 24, lastSync: '2 hours ago', status: 'Indexed' },
@@ -17,10 +19,13 @@ const sources = [
 ]
 
 export default function AIKnowledgePage() {
+  const router = useRouter()
+  const { toast } = useToast()
+
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
       <motion.div variants={staggerItem}>
-        <PageHeader title="AI Knowledge" description="Manage AI knowledge sources and grounding" breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'AI Knowledge' }]} actions={<Button leftIcon={<Upload className="w-4 h-4" />}>Upload Document</Button>} />
+        <PageHeader title="AI Knowledge" description="Manage AI knowledge sources and grounding" breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'AI Knowledge' }]} actions={<Button leftIcon={<Upload className="w-4 h-4" />} onClick={() => toast('Upload document form coming soon', 'info')}>Upload Document</Button>} />
       </motion.div>
       <motion.div variants={staggerItem}>
         <AIInsight title="AI Knowledge Status">

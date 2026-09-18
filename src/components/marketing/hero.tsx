@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { ArrowRight, Play, Sparkles, Zap, Shield } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -73,16 +74,16 @@ export default function Hero() {
 
         {/* CTA Buttons */}
         <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: 16, marginBottom: 80 }}>
-          <a
+          <Link
             href="/contact"
             className="btn-gradient"
             style={{ display: 'inline-flex', alignItems: 'center', gap: 8, borderRadius: 12, padding: '16px 32px', color: '#fff', fontWeight: 600, fontSize: 18, textDecoration: 'none', boxShadow: '0 10px 15px -3px rgba(52,82,255,0.2)' }}
           >
             Get Started
             <ArrowRight style={{ width: 20, height: 20 }} />
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="/dashboard"
             style={{ display: 'inline-flex', alignItems: 'center', gap: 12, borderRadius: 12, padding: '16px 32px', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--foreground)', fontWeight: 600, fontSize: 18, textDecoration: 'none', transition: 'all 0.3s' }}
           >
@@ -90,7 +91,7 @@ export default function Hero() {
               <Play style={{ width: 14, height: 14, fill: 'var(--primary)', color: 'var(--primary)' }} />
             </div>
             Watch Demo
-          </a>
+          </Link>
         </div>
 
         {/* Stats */}

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Brain, Plus, Calendar, Target, TrendingUp, Users, ChevronRight } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { staggerContainer, staggerItem } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { PageHeader, StatCard } from '@/components/ui/card'
@@ -12,6 +13,7 @@ import Avatar from '@/components/ui/avatar'
 import Card from '@/components/ui/card'
 import Progress from '@/components/ui/progress'
 import AIInsight from '@/components/ui/ai-insight'
+import { useToast } from '@/components/ui/toast'
 
 interface CoachingSession {
   id: string
@@ -38,6 +40,8 @@ const statusColor: Record<string, string> = {
 export default function CoachingPage() {
   const [data, setData] = useState<CoachingData | null>(null)
   const [loading, setLoading] = useState(true)
+  const router = useRouter()
+  const { toast } = useToast()
 
   useEffect(() => {
     fetch('/api/coaching')
@@ -57,7 +61,7 @@ export default function CoachingPage() {
           title="Coaching & Mentoring"
           description="Client coaching, goals, and progress tracking"
           breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Coaching' }]}
-          actions={<Button leftIcon={<Plus className="w-4 h-4" />}>Add Client</Button>}
+          actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => toast('Add client form coming soon', 'info')}>Add Client</Button>}
         />
       </motion.div>
 

@@ -25,6 +25,7 @@ const dateFilters = ['Today', '7 Days', '30 Days', '90 Days', 'Year']
 export default function AnalyticsPage() {
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [selectedFilter, setSelectedFilter] = useState('30 Days')
   const { toast } = useToast()
 
   useEffect(() => {
@@ -51,12 +52,35 @@ export default function AnalyticsPage() {
             <div className="flex items-center gap-2 flex-wrap">
               <div className="flex items-center bg-surface-muted rounded-lg p-0.5 overflow-x-auto">
                 {dateFilters.map((f) => (
-                  <button key={f} className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap ${f === '30 Days' ? 'bg-surface text-foreground shadow-sm' : 'text-text-muted hover:text-foreground'}`}>
+                  <button key={f} onClick={() => { setSelectedFilter(f); toast(`Filtering by ${f}`, 'info') }} className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap ${f === selectedFilter ? 'bg-surface text-foreground shadow-sm' : 'text-text-muted hover:text-foreground'}`}>
                     {f}
                   </button>
                 ))}
               </div>
-              <Button variant="outline" size="sm" leftIcon={<Download className="w-4 h-4" />} onClick={() => toast('Exporting analytics report...', 'info')}>Export</Button>
+              <Button variant="outline" size="sm" leftIcon={<Download className="w-4 h-4" />} onClick={() => {
+                if (!data) { toast('No data to export', 'error'); return }
+                const rows = [
+                  ['Metric', 'Value'],
+                  ['Total Revenue', formatCurrency(data.revenue.total)],
+                  ['Total Customers', data.customers.total],
+                  ['Active Customers', data.customers.active],
+                  ['Total Leads', totalLeads],
+                  ['Conversion Rate', `${conversionRate}%`],
+                  ['Total Enrollments', data.enrollments.total],
+                  ['Completed Enrollments', data.enrollments.completed],
+                  ['Open Support Tickets', data.support.open],
+                  ['Resolved Support Tickets', data.support.resolved],
+                ]
+                const csv = rows.map(r => r.join(',')).join('\n')
+                const blob = new Blob([csv], { type: 'text/csv' })
+                const url = URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                a.href = url
+                a.download = `analytics-report-${selectedFilter.toLowerCase().replace(/\s/g, '-')}.csv`
+                a.click()
+                URL.revokeObjectURL(url)
+                toast('Analytics report exported successfully', 'success')
+              }}>Export</Button>
             </div>
           }
         />

@@ -2,12 +2,14 @@
 
 import { motion } from 'framer-motion'
 import { ClipboardCheck, Plus } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { staggerContainer, staggerItem } from '@/lib/motion'
 import { PageHeader } from '@/components/ui/card'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
 import Timeline from '@/components/ui/timeline'
 import Badge from '@/components/ui/badge'
+import { useToast } from '@/components/ui/toast'
 
 const onboardingSteps = [
   { id: '1', title: 'Registration', description: 'Customer completes registration form', status: 'completed', time: 'Day 0' },
@@ -22,6 +24,9 @@ const onboardingSteps = [
 ]
 
 export default function OnboardingPage() {
+  const router = useRouter()
+  const { toast } = useToast()
+
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
       <motion.div variants={staggerItem}>
@@ -29,7 +34,7 @@ export default function OnboardingPage() {
           title="Onboarding"
           description="Customer onboarding workflow management"
           breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Onboarding' }]}
-          actions={<Button leftIcon={<Plus className="w-4 h-4" />}>New Onboarding</Button>}
+          actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => toast('Create onboarding form coming soon', 'info')}>New Onboarding</Button>}
         />
       </motion.div>
       <motion.div variants={staggerItem}>

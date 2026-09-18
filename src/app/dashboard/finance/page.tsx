@@ -10,6 +10,7 @@ import {
   Plus,
   Download,
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { staggerContainer, staggerItem } from '@/lib/motion'
 import { cn, formatCurrency } from '@/lib/utils'
 import { PageHeader, StatCard } from '@/components/ui/card'
@@ -18,6 +19,7 @@ import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
 import DataTable, { Column } from '@/components/ui/data-table'
 import AIInsight from '@/components/ui/ai-insight'
+import { useToast } from '@/components/ui/toast'
 
 interface Invoice {
   id: string
@@ -50,6 +52,8 @@ const statusVariant: Record<string, 'success' | 'warning' | 'error' | 'neutral'>
 export default function FinancePage() {
   const [data, setData] = useState<FinanceData | null>(null)
   const [loading, setLoading] = useState(true)
+  const router = useRouter()
+  const { toast } = useToast()
 
   useEffect(() => {
     fetch('/api/finance')
@@ -112,8 +116,19 @@ export default function FinancePage() {
           breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Finance' }]}
           actions={
             <div className="flex items-center gap-2 flex-wrap">
-              <Button variant="outline" size="sm" leftIcon={<Download className="w-4 h-4" />}>Export</Button>
-              <Button size="sm" leftIcon={<Plus className="w-4 h-4" />}>Create Invoice</Button>
+              <Button variant="outline" size="sm" leftIcon={<Download className="w-4 h-4" />} onClick={() => {
+                if (!data?.invoices) return
+                const csv = 'Invoice,Customer,Amount,Status,Date\n' + data.invoices.map(i => `${i.invoiceNumber},${i.customer.name},${formatCurrency(i.total)},${i.status},${new Date(i.createdAt).toLocaleDateString('en-NG')}`).join('\n')
+                const blob = new Blob([csv], { type: 'text/csv' })
+                const url = URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                a.href = url
+                a.download = 'finance-export.csv'
+                a.click()
+                URL.revokeObjectURL(url)
+                toast('Exported successfully', 'success')
+              }}>Export</Button>
+              <Button size="sm" leftIcon={<Plus className="w-4 h-4" />} onClick={() => toast('Create invoice form coming soon', 'info')}>Create Invoice</Button>
             </div>
           }
         />

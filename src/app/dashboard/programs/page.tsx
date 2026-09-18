@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
   GraduationCap,
@@ -36,6 +37,7 @@ export default function ProgrammesPage() {
   const [programs, setPrograms] = useState<Program[]>([])
   const [loading, setLoading] = useState(true)
   const { toast } = useToast()
+  const router = useRouter()
 
   useEffect(() => {
     fetch('/api/programs')
@@ -52,7 +54,7 @@ export default function ProgrammesPage() {
           title="Programmes"
           description="Manage training programmes and cohorts"
           breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Programmes' }]}
-          actions={<Button leftIcon={<Plus className="w-4 h-4" />}>New Programme</Button>}
+          actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => toast('Create programme form coming soon', 'info')}>New Programme</Button>}
         />
       </motion.div>
 
@@ -101,7 +103,7 @@ export default function ProgrammesPage() {
               )}
               <div className="flex items-center justify-between mt-4">
                 <span className="text-sm font-semibold gradient-text">{prog._count.enrollments} enrolled</span>
-                <button onClick={() => toast(`Opening ${prog.name} details...`, 'info')} className="text-xs text-primary hover:text-primary-dark flex items-center gap-1">
+                <button onClick={() => router.push(`/dashboard/programs/${prog.id}`)} className="text-xs text-primary hover:text-primary-dark flex items-center gap-1">
                   View Details <ChevronRight className="w-3 h-3" />
                 </button>
               </div>

@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
   Bot,
@@ -26,6 +27,7 @@ import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
 import AIInsight from '@/components/ui/ai-insight'
 import Progress from '@/components/ui/progress'
+import { useToast } from '@/components/ui/toast'
 
 const agents = [
   {
@@ -144,6 +146,8 @@ const activityTimeline = [
 ]
 
 export default function AIAgentsPage() {
+  const router = useRouter()
+  const { toast } = useToast()
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
       <motion.div variants={staggerItem}>
@@ -151,7 +155,7 @@ export default function AIAgentsPage() {
           title="AI Agents"
           description="Intelligent agents automating your business operations"
           breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'AI Agents' }]}
-          actions={<Button leftIcon={<Sparkles className="w-4 h-4" />}>Open AI Assistant</Button>}
+          actions={<Button leftIcon={<Sparkles className="w-4 h-4" />} onClick={() => toast('AI Assistant is being prepared...', 'info')}>Open AI Assistant</Button>}
         />
       </motion.div>
 
@@ -217,7 +221,7 @@ export default function AIAgentsPage() {
                 <p className="text-sm font-semibold text-primary">{agent.timeSaved}</p>
               </div>
             </div>
-            <button className="w-full flex items-center justify-center gap-1 text-xs text-primary hover:text-primary-dark font-medium py-2 rounded-lg bg-primary/5 hover:bg-primary/10 transition-colors">
+            <button onClick={() => { toast(`Opening ${agent.name}...`, 'info'); router.push(`/dashboard/ai/${agent.id}`) }} className="w-full flex items-center justify-center gap-1 text-xs text-primary hover:text-primary-dark font-medium py-2 rounded-lg bg-primary/5 hover:bg-primary/10 transition-colors">
               Open Agent <ChevronRight className="w-3 h-3" />
             </button>
           </Card>

@@ -2,11 +2,13 @@
 
 import { motion } from 'framer-motion'
 import { Megaphone, Plus } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { staggerContainer, staggerItem } from '@/lib/motion'
 import { PageHeader } from '@/components/ui/card'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
 import EmptyState from '@/components/ui/empty-state'
+import { useToast } from '@/components/ui/toast'
 
 const campaigns = [
   { name: 'August Webinar Series', type: 'EMAIL', status: 'ACTIVE', reach: 2840, engagement: '42%', conversions: 124 },
@@ -15,6 +17,9 @@ const campaigns = [
 ]
 
 export default function CampaignsPage() {
+  const router = useRouter()
+  const { toast } = useToast()
+
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
       <motion.div variants={staggerItem}>
@@ -22,7 +27,7 @@ export default function CampaignsPage() {
           title="Campaigns"
           description="Manage marketing campaigns across all channels"
           breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Campaigns' }]}
-          actions={<Button leftIcon={<Plus className="w-4 h-4" />}>New Campaign</Button>}
+          actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => toast('Create campaign form coming soon', 'info')}>New Campaign</Button>}
         />
       </motion.div>
       <motion.div variants={staggerItem}>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
   Target,
@@ -57,6 +58,7 @@ export default function LeadsPage() {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('all')
   const { toast } = useToast()
+  const router = useRouter()
   const [stats, setStats] = useState<{ status: string; _count: number }[]>([])
 
   useEffect(() => {
@@ -129,7 +131,7 @@ export default function LeadsPage() {
           title="Leads"
           description="Lead generation and pipeline management"
           breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Leads' }]}
-          actions={<Button leftIcon={<Plus className="w-4 h-4" />}>Add Lead</Button>}
+          actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => toast('Add lead form coming soon', 'info')}>Add Lead</Button>}
         />
       </motion.div>
 
@@ -177,7 +179,7 @@ export default function LeadsPage() {
                       </button>
                     }
                     items={[
-                      { label: 'View Details', onClick: () => toast('Opening lead details...', 'info'), icon: <Target className="w-4 h-4" /> },
+                      { label: 'View Details', onClick: () => router.push(`/dashboard/leads/${item.id}`), icon: <Target className="w-4 h-4" /> },
                       { label: 'Assign', onClick: () => toast('Assignment feature coming soon', 'info'), icon: <UserPlus className="w-4 h-4" /> },
                       { label: 'Convert to Customer', onClick: () => toast('Converting lead to customer...', 'info'), icon: <TrendingUp className="w-4 h-4" /> },
                     ]}

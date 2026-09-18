@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
   Users,
@@ -57,6 +58,7 @@ export default function CRMPage() {
   const [activeTab, setActiveTab] = useState('all')
   const [stats, setStats] = useState<{ status: string; _count: number }[]>([])
   const { toast } = useToast()
+  const router = useRouter()
 
   useEffect(() => {
     fetch('/api/crm')
@@ -122,7 +124,7 @@ export default function CRMPage() {
           title="CRM"
           description="Manage your customer relationships"
           breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'CRM' }]}
-          actions={<Button leftIcon={<Plus className="w-4 h-4" />}>Add Customer</Button>}
+          actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => toast('Add customer form coming soon', 'info')}>Add Customer</Button>}
         />
       </motion.div>
 
@@ -162,7 +164,7 @@ export default function CRMPage() {
                 searchable
                 searchPlaceholder="Search customers..."
                 searchKey="name"
-                onRowClick={(item) => window.location.href = `/dashboard/crm/${item.id}`}
+                onRowClick={(item) => router.push(`/dashboard/crm/${item.id}`)}
                 actions={(item) => (
                   <Dropdown
                     trigger={
@@ -171,9 +173,9 @@ export default function CRMPage() {
                       </button>
                     }
                     items={[
-                      { label: 'View Profile', onClick: () => toast('Opening customer profile...', 'info'), icon: <Users className="w-4 h-4" /> },
-                      { label: 'Send Email', onClick: () => toast('Email composer opening...', 'info'), icon: <Mail className="w-4 h-4" /> },
-                      { label: 'Call', onClick: () => toast('Initiating call...', 'info'), icon: <Phone className="w-4 h-4" /> },
+                      { label: 'View Profile', onClick: () => router.push(`/dashboard/crm/${item.id}`), icon: <Users className="w-4 h-4" /> },
+                      { label: 'Send Email', onClick: () => { if (item.email) { window.location.href = `mailto:${item.email}` } else { toast('No email address available', 'error') } }, icon: <Mail className="w-4 h-4" /> },
+                      { label: 'Call', onClick: () => { if (item.phone) { window.location.href = `tel:${item.phone}` } else { toast('No phone number available', 'error') } }, icon: <Phone className="w-4 h-4" /> },
                     ]}
                   />
                 )}

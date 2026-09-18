@@ -95,7 +95,12 @@ export default function SettingsPage() {
                   <Select label="Currency" options={[{ value: 'NGN', label: '\u20a6 NGN' }, { value: 'USD', label: '$ USD' }]} defaultValue="NGN" />
                   <Select label="Timezone" options={[{ value: 'Africa/Lagos', label: 'WAT (Africa/Lagos)' }, { value: 'UTC', label: 'UTC' }]} defaultValue="Africa/Lagos" />
                 </div>
-                <Button onClick={() => toast('Organisation settings saved successfully', 'success')}>Save Changes</Button>
+                <Button onClick={async () => {
+                  try {
+                    await fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ section: 'organisation', data: {} }) })
+                    toast('Organisation settings saved successfully', 'success')
+                  } catch { toast('Failed to save settings', 'error') }
+                }}>Save Changes</Button>
               </div>
             </Card>
           )}
@@ -141,7 +146,12 @@ export default function SettingsPage() {
                 <Input label="OpenAI API Key" type="password" placeholder="sk-..." helperText="Add your OpenAI API key to enable AI features" />
                 <Select label="Default AI Model" options={[{ value: 'gpt-4o', label: 'GPT-4o' }, { value: 'gpt-4o-mini', label: 'GPT-4o Mini' }]} defaultValue="gpt-4o-mini" />
                 <Input label="Max Tokens" type="number" defaultValue="2000" />
-                <Button onClick={() => toast('AI settings saved successfully', 'success')}>Save AI Settings</Button>
+                <Button onClick={async () => {
+                  try {
+                    await fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ section: 'ai', data: {} }) })
+                    toast('AI settings saved successfully', 'success')
+                  } catch { toast('Failed to save settings', 'error') }
+                }}>Save AI Settings</Button>
               </div>
             </Card>
           )}
@@ -157,7 +167,12 @@ export default function SettingsPage() {
                 </div>
                 <Input label="Session Timeout (minutes)" type="number" defaultValue="60" />
                 <Input label="Max Login Attempts" type="number" defaultValue="5" />
-                <Button onClick={() => toast('Security settings saved successfully', 'success')}>Save Security Settings</Button>
+                <Button onClick={async () => {
+                  try {
+                    await fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ section: 'security', data: {} }) })
+                    toast('Security settings saved successfully', 'success')
+                  } catch { toast('Failed to save settings', 'error') }
+                }}>Save Security Settings</Button>
               </div>
             </Card>
           )}
@@ -217,7 +232,12 @@ export default function SettingsPage() {
                     <input type="checkbox" defaultChecked={item.defaultChecked} className="w-4 h-4 rounded border-border text-primary focus:ring-primary" />
                   </label>
                 ))}
-                <Button onClick={() => toast('Notification preferences saved', 'success')}>Save Preferences</Button>
+                <Button onClick={async () => {
+                  try {
+                    await fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ section: 'notifications', data: {} }) })
+                    toast('Notification preferences saved', 'success')
+                  } catch { toast('Failed to save settings', 'error') }
+                }}>Save Preferences</Button>
               </div>
             </Card>
           )}
@@ -232,7 +252,12 @@ export default function SettingsPage() {
                 <Input label="SMTP Password" type="password" placeholder="••••••••" />
                 <Input label="From Name" defaultValue={COMPANY.shortName + ' AI'} />
                 <Input label="From Email" type="email" defaultValue={COMPANY.email} />
-                <Button onClick={() => toast('Email settings saved successfully', 'success')}>Save Email Settings</Button>
+                <Button onClick={async () => {
+                  try {
+                    await fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ section: 'email', data: {} }) })
+                    toast('Email settings saved successfully', 'success')
+                  } catch { toast('Failed to save settings', 'error') }
+                }}>Save Email Settings</Button>
               </div>
             </Card>
           )}
@@ -244,7 +269,12 @@ export default function SettingsPage() {
                 <Input label="WhatsApp Business Phone Number" placeholder="+234..." />
                 <Input label="API Token" type="password" placeholder="Enter your WhatsApp Business API token" />
                 <Input label="Webhook URL" defaultValue={`${COMPANY.website}/api/webhooks/whatsapp`} />
-                <Button onClick={() => toast('WhatsApp settings saved successfully', 'success')}>Save WhatsApp Settings</Button>
+                <Button onClick={async () => {
+                  try {
+                    await fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ section: 'whatsapp', data: {} }) })
+                    toast('WhatsApp settings saved successfully', 'success')
+                  } catch { toast('Failed to save settings', 'error') }
+                }}>Save WhatsApp Settings</Button>
               </div>
             </Card>
           )}
@@ -257,7 +287,12 @@ export default function SettingsPage() {
                 <Input label="Paystack Secret Key" type="password" placeholder="sk_live_..." />
                 <Input label="Default Currency" defaultValue="NGN" />
                 <Input label="Invoice Prefix" defaultValue="CTAL-" />
-                <Button onClick={() => toast('Payment settings saved successfully', 'success')}>Save Payment Settings</Button>
+                <Button onClick={async () => {
+                  try {
+                    await fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ section: 'payments', data: {} }) })
+                    toast('Payment settings saved successfully', 'success')
+                  } catch { toast('Failed to save settings', 'error') }
+                }}>Save Payment Settings</Button>
               </div>
             </Card>
           )}

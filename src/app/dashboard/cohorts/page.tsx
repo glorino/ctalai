@@ -2,10 +2,12 @@
 
 import { motion } from 'framer-motion'
 import { Users, Plus } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { staggerContainer, staggerItem } from '@/lib/motion'
 import { PageHeader, StatCard } from '@/components/ui/card'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
+import { useToast } from '@/components/ui/toast'
 
 const cohorts = [
   { name: 'Advanced Valuation - Cohort 7', programme: 'Advanced Valuation', enrolled: 32, capacity: 40, status: 'ACTIVE', startDate: '1 Jul 2025', endDate: '30 Sep 2025' },
@@ -14,6 +16,9 @@ const cohorts = [
 ]
 
 export default function CohortsPage() {
+  const router = useRouter()
+  const { toast } = useToast()
+
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
       <motion.div variants={staggerItem}>
@@ -21,7 +26,7 @@ export default function CohortsPage() {
           title="Cohorts"
           description="Manage training cohorts"
           breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Cohorts' }]}
-          actions={<Button leftIcon={<Plus className="w-4 h-4" />}>New Cohort</Button>}
+          actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => toast('Create cohort form coming soon', 'info')}>New Cohort</Button>}
         />
       </motion.div>
       <motion.div variants={staggerItem} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

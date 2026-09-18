@@ -2,10 +2,12 @@
 
 import { motion } from 'framer-motion'
 import { FileCheck, Plus } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { staggerContainer, staggerItem } from '@/lib/motion'
 import { PageHeader } from '@/components/ui/card'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
+import { useToast } from '@/components/ui/toast'
 
 const sops = [
   { title: 'Customer Onboarding Process', category: 'Operations', version: 3, lastUpdated: '10 Aug 2025', owner: 'Chioma' },
@@ -14,10 +16,13 @@ const sops = [
 ]
 
 export default function SOPsPage() {
+  const router = useRouter()
+  const { toast } = useToast()
+
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
       <motion.div variants={staggerItem}>
-        <PageHeader title="SOPs" description="Standard Operating Procedures" breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'SOPs' }]} actions={<Button leftIcon={<Plus className="w-4 h-4" />}>New SOP</Button>} />
+        <PageHeader title="SOPs" description="Standard Operating Procedures" breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'SOPs' }]} actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => toast('Create SOP form coming soon', 'info')}>New SOP</Button>} />
       </motion.div>
       <motion.div variants={staggerItem}>
         <Card padding="md">

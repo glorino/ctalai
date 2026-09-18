@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import Button from './button'
 
@@ -28,9 +29,9 @@ export default function EmptyState({ icon, title, description, action, className
       {action && (
         <div className="mt-4">
           {action.href ? (
-            <a href={action.href}>
+            <Link href={action.href}>
               <Button size="sm">{action.label}</Button>
-            </a>
+            </Link>
           ) : (
             <Button size="sm" onClick={action.onClick}>{action.label}</Button>
           )}

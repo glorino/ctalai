@@ -2,10 +2,12 @@
 
 import { motion } from 'framer-motion'
 import { CalendarDays, Plus } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { staggerContainer, staggerItem } from '@/lib/motion'
 import { PageHeader } from '@/components/ui/card'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
+import { useToast } from '@/components/ui/toast'
 
 const sessions = [
   { id: '1', client: 'Adebayo Ogundimu', coach: 'Coach Emeka', date: '15 Aug 2025', time: '10:00 AM', type: 'Progress Review', status: 'SCHEDULED' },
@@ -14,10 +16,13 @@ const sessions = [
 ]
 
 export default function SessionsPage() {
+  const router = useRouter()
+  const { toast } = useToast()
+
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
       <motion.div variants={staggerItem}>
-        <PageHeader title="Coaching Sessions" description="Upcoming and past coaching sessions" breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Sessions' }]} actions={<Button leftIcon={<Plus className="w-4 h-4" />}>Schedule Session</Button>} />
+        <PageHeader title="Coaching Sessions" description="Upcoming and past coaching sessions" breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Sessions' }]} actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => toast('Schedule session form coming soon', 'info')}>Schedule Session</Button>} />
       </motion.div>
       <motion.div variants={staggerItem}>
         <Card padding="md">

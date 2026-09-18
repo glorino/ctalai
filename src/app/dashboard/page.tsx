@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
   Users,
@@ -20,6 +21,7 @@ import {
 } from 'lucide-react'
 import { staggerContainer, staggerItem } from '@/lib/motion'
 import { cn, formatCurrency } from '@/lib/utils'
+import Link from 'next/link'
 import Button from '@/components/ui/button'
 import Badge from '@/components/ui/badge'
 import AIInsight from '@/components/ui/ai-insight'
@@ -101,6 +103,7 @@ export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const { toast } = useToast()
+  const router = useRouter()
   const today = new Date().toLocaleDateString('en-NG', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 
   useEffect(() => {
@@ -241,8 +244,8 @@ export default function DashboardPage() {
             ))}
           </div>
           <div className="flex items-center gap-2 mt-4">
-            <Button size="sm" variant="outline" onClick={() => toast('Review Actions: 3 items need attention', 'info')}>Review Actions</Button>
-            <Button size="sm" onClick={() => toast('AI Assistant is being prepared...', 'info')}>Ask AI</Button>
+            <Button size="sm" variant="outline" onClick={() => router.push('/dashboard/leads')}>Review Actions</Button>
+            <Button size="sm" onClick={() => router.push('/dashboard/ai')}>Ask AI</Button>
           </div>
         </AIInsight>
       </motion.div>
@@ -254,7 +257,7 @@ export default function DashboardPage() {
           <div className="card bg-surface border border-border rounded-2xl p-6">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-sm font-semibold">Recent Leads</h2>
-              <a href="/dashboard/leads" className="text-xs text-primary hover:text-primary-dark transition-colors">View all</a>
+              <Link href="/dashboard/leads" className="text-xs text-primary hover:text-primary-dark transition-colors">View all</Link>
             </div>
             {loading ? (
               <div className="space-y-3">{[1, 2, 3].map((i) => <div key={i} className="skeleton h-12 rounded-lg" />)}</div>
@@ -284,7 +287,7 @@ export default function DashboardPage() {
           <div className="card bg-surface border border-border rounded-2xl p-6">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-sm font-semibold">Active Programmes</h2>
-              <a href="/dashboard/programs" className="text-xs text-primary hover:text-primary-dark">View all</a>
+              <Link href="/dashboard/programs" className="text-xs text-primary hover:text-primary-dark">View all</Link>
             </div>
             {loading ? (
               <div className="space-y-3">{[1, 2, 3].map((i) => <div key={i} className="skeleton h-12 rounded-lg" />)}</div>
@@ -316,7 +319,7 @@ export default function DashboardPage() {
               <Bot className="w-4 h-4 text-primary" />
               AI Agents
             </h2>
-            <a href="/dashboard/ai" className="text-xs text-primary hover:text-primary-dark">View all</a>
+            <Link href="/dashboard/ai" className="text-xs text-primary hover:text-primary-dark">View all</Link>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {agentStatus.map((agent) => (

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Briefcase, Users, Calendar, TrendingUp, ChevronRight, Plus } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { staggerContainer, staggerItem } from '@/lib/motion'
 import { PageHeader, StatCard } from '@/components/ui/card'
 import Badge from '@/components/ui/badge'
@@ -10,6 +11,7 @@ import Button from '@/components/ui/button'
 import Avatar from '@/components/ui/avatar'
 import Card from '@/components/ui/card'
 import Progress from '@/components/ui/progress'
+import { useToast } from '@/components/ui/toast'
 
 interface Staff {
   id: string
@@ -38,6 +40,8 @@ const statusVariant: Record<string, 'success' | 'warning' | 'error'> = {
 export default function HRPage() {
   const [data, setData] = useState<HRData | null>(null)
   const [loading, setLoading] = useState(true)
+  const router = useRouter()
+  const { toast } = useToast()
 
   useEffect(() => {
     fetch('/api/hr')
@@ -57,7 +61,7 @@ export default function HRPage() {
           title="HR & People"
           description="Employee management, performance, and recruitment"
           breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'HR' }]}
-          actions={<Button leftIcon={<Plus className="w-4 h-4" />}>Add Employee</Button>}
+          actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => toast('Add employee form coming soon', 'info')}>Add Employee</Button>}
         />
       </motion.div>
 

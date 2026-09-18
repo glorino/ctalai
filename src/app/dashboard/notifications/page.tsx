@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Bell } from 'lucide-react'
 import { staggerContainer, staggerItem } from '@/lib/motion'
@@ -8,7 +9,7 @@ import Card from '@/components/ui/card'
 import Badge from '@/components/ui/badge'
 import { useToast } from '@/components/ui/toast'
 
-const notifications = [
+const initialNotifications = [
   { title: 'New payment received', desc: '₦125,000 from Adebayo Ogundimu', time: '2m ago', unread: true, category: 'Finance' },
   { title: 'Lead requires follow-up', desc: 'High-value lead from webinar: TechStart Nigeria', time: '15m ago', unread: true, category: 'Sales' },
   { title: 'Programme engagement dropped', desc: 'Advanced Valuation Cohort 7 attendance below 85%', time: '1h ago', unread: false, category: 'Programmes' },
@@ -27,6 +28,7 @@ const categoryColors: Record<string, string> = {
 
 export default function NotificationsPage() {
   const { toast } = useToast()
+  const [notifications, setNotifications] = useState(initialNotifications)
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
       <motion.div variants={staggerItem}>
@@ -36,11 +38,11 @@ export default function NotificationsPage() {
         <Card padding="none">
           <div className="px-6 py-4 border-b border-border flex items-center justify-between">
             <h3 className="text-sm font-semibold">All Notifications</h3>
-            <button onClick={() => toast('All notifications marked as read', 'success')} className="text-xs text-primary hover:text-primary-dark">Mark all read</button>
+            <button onClick={() => { setNotifications(prev => prev.map(n => ({ ...n, unread: false }))); toast('All notifications marked as read', 'success') }} className="text-xs text-primary hover:text-primary-dark">Mark all read</button>
           </div>
           <div className="divide-y divide-border-light">
             {notifications.map((n, i) => (
-              <div key={i} className={`px-6 py-4 flex items-start gap-3 hover:bg-surface-light transition-colors cursor-pointer ${n.unread ? 'bg-primary/[0.02]' : ''}`}>
+              <div key={i} onClick={() => { setNotifications(prev => prev.map((item, idx) => idx === i ? { ...item, unread: false } : item)); toast(`Opening: ${n.title}`, 'info') }} className={`px-6 py-4 flex items-start gap-3 hover:bg-surface-light transition-colors cursor-pointer ${n.unread ? 'bg-primary/[0.02]' : ''}`}>
                 <div className="mt-1">
                   {n.unread ? <div className="w-2 h-2 rounded-full bg-primary" /> : <div className="w-2 h-2 rounded-full bg-transparent" />}
                 </div>

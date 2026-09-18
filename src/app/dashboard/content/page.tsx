@@ -3,11 +3,13 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { FileText, Plus, Clock, CheckCircle2, Eye } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { staggerContainer, staggerItem } from '@/lib/motion'
 import { PageHeader, StatCard } from '@/components/ui/card'
 import Badge from '@/components/ui/badge'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
+import { useToast } from '@/components/ui/toast'
 
 interface ContentItem {
   id: string
@@ -30,6 +32,8 @@ const statusVariant: Record<string, 'success' | 'warning' | 'neutral' | 'primary
 export default function ContentPage() {
   const [content, setContent] = useState<ContentItem[]>([])
   const [loading, setLoading] = useState(true)
+  const router = useRouter()
+  const { toast } = useToast()
 
   useEffect(() => {
     fetch('/api/content')
@@ -46,7 +50,7 @@ export default function ContentPage() {
           title="Content"
           description="Content management and knowledge base"
           breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Content' }]}
-          actions={<Button leftIcon={<Plus className="w-4 h-4" />}>Create Content</Button>}
+          actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => toast('Create content form coming soon', 'info')}>Create Content</Button>}
         />
       </motion.div>
 

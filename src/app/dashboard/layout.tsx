@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard,
@@ -44,6 +44,7 @@ import {
   LogOut,
   ChevronDown,
   Command,
+  CheckCircle2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ToastProvider } from '@/components/ui/toast'
@@ -162,7 +163,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({})
   const [layoutToast, setLayoutToast] = useState<string | null>(null)
+  const [notifications, setNotifications] = useState([
+    { title: 'New payment received', desc: '₦125,000 from Tech Corp', time: '2m ago', unread: true },
+    { title: 'Lead requires follow-up', desc: 'High-value lead from webinar', time: '15m ago', unread: true },
+    { title: 'Programme engagement dropped', desc: 'Advanced Valuation Cohort', time: '1h ago', unread: false },
+    { title: 'AI agent escalated a customer', desc: 'Auto-escalation from Growth Agent', time: '2h ago', unread: false },
+  ])
   const pathname = usePathname()
+  const router = useRouter()
 
   useEffect(() => {
     const initial: Record<string, boolean> = {}
@@ -422,16 +430,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       >
                         <div className="p-3 border-b border-border flex items-center justify-between">
                           <h3 className="text-sm font-semibold">Notifications</h3>
-                           <button className="text-xs text-primary hover:text-primary-dark" onClick={() => setLayoutToast('All notifications marked as read')}>Mark all read</button>
+                           <button className="text-xs text-primary hover:text-primary-dark" onClick={() => { setNotifications(prev => prev.map(n => ({ ...n, unread: false }))); setLayoutToast('All notifications marked as read') }}>Mark all read</button>
                         </div>
                         <div className="max-h-80 overflow-y-auto">
-                          {[
-                            { title: 'New payment received', desc: '₦125,000 from Tech Corp', time: '2m ago', unread: true },
-                            { title: 'Lead requires follow-up', desc: 'High-value lead from webinar', time: '15m ago', unread: true },
-                            { title: 'Programme engagement dropped', desc: 'Advanced Valuation Cohort', time: '1h ago', unread: false },
-                            { title: 'AI agent escalated a customer', desc: 'Auto-escalation from Growth Agent', time: '2h ago', unread: false },
-                          ].map((n, i) => (
-                            <div key={i} className={cn('p-3 border-b border-border-light hover:bg-surface-light transition-colors cursor-pointer', n.unread && 'bg-primary/[0.02]')}>
+                          {notifications.map((n, i) => (
+                            <div key={i} onClick={() => { setNotifications(prev => prev.map((item, idx) => idx === i ? { ...item, unread: false } : item)); router.push('/dashboard/notifications'); setNotificationsOpen(false) }} className={cn('p-3 border-b border-border-light hover:bg-surface-light transition-colors cursor-pointer', n.unread && 'bg-primary/[0.02]')}>
                               <div className="flex items-start gap-2">
                                 {n.unread && <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />}
                                 <div className={cn(!n.unread && 'ml-3.5')}>
@@ -505,7 +508,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     { label: 'Programme: Advanced Valuation', href: '/dashboard/programs' },
                     { label: 'Invoice: CTAL-2408-0042', href: '/dashboard/finance' },
                   ].map((item, i) => (
-                    <button key={i} onClick={() => { setLayoutToast(`Opening ${item.label}...`); setSearchOpen(false) }} className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-surface-muted transition-colors flex items-center gap-2">
+                    <button key={i} onClick={() => { router.push(item.href); setSearchOpen(false) }} className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-surface-muted transition-colors flex items-center gap-2">
                       <Search className="w-3.5 h-3.5 text-text-muted" />
                       {item.label}
                     </button>
@@ -516,7 +519,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     { label: 'Create invoice', href: '/dashboard/finance' },
                     { label: 'Schedule coaching session', href: '/dashboard/coaching' },
                   ].map((item, i) => (
-                    <button key={i} onClick={() => { setLayoutToast(`Opening ${item.label}...`); setSearchOpen(false) }} className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-surface-muted transition-colors flex items-center gap-2">
+                    <button key={i} onClick={() => { router.push(item.href); setSearchOpen(false) }} className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-surface-muted transition-colors flex items-center gap-2">
                       <Zap className="w-3.5 h-3.5 text-primary" />
                       {item.label}
                     </button>

@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { Megaphone, Plus, Users, TrendingUp, Mail, MessageSquare, BarChart3 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { staggerContainer, staggerItem } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 import { PageHeader, StatCard } from '@/components/ui/card'
@@ -11,6 +12,7 @@ import Card from '@/components/ui/card'
 import Tabs from '@/components/ui/tabs'
 import Progress from '@/components/ui/progress'
 import AIInsight from '@/components/ui/ai-insight'
+import { useToast } from '@/components/ui/toast'
 
 const campaigns = [
   { name: 'August Webinar Series', channel: 'Email', audience: 'All Leads', status: 'ACTIVE', reach: 2840, engagement: 42, conversions: 124, revenue: '₦1.8M' },
@@ -42,6 +44,9 @@ const stats = [
 ]
 
 export default function MarketingPage() {
+  const router = useRouter()
+  const { toast } = useToast()
+
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
       <motion.div variants={staggerItem}>
@@ -49,7 +54,7 @@ export default function MarketingPage() {
           title="Marketing"
           description="Campaigns, audiences, and marketing analytics"
           breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Marketing' }]}
-          actions={<Button leftIcon={<Plus className="w-4 h-4" />}>New Campaign</Button>}
+          actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => toast('Create campaign form coming soon', 'info')}>New Campaign</Button>}
         />
       </motion.div>
 

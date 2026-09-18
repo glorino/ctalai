@@ -2,11 +2,13 @@
 
 import { motion } from 'framer-motion'
 import { FileText, Plus, Download, Send } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { staggerContainer, staggerItem } from '@/lib/motion'
 import { PageHeader, StatCard } from '@/components/ui/card'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
 import Badge from '@/components/ui/badge'
+import { useToast } from '@/components/ui/toast'
 
 const invoices = [
   { number: 'CTAL-2508-0042', customer: 'Adebayo Ogundimu', amount: '₦125,000', status: 'PAID', date: '12 Aug 2025', dueDate: '26 Aug 2025' },
@@ -31,10 +33,13 @@ const stats = [
 ]
 
 export default function InvoicesPage() {
+  const router = useRouter()
+  const { toast } = useToast()
+
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
       <motion.div variants={staggerItem}>
-        <PageHeader title="Invoices" description="Invoice management and tracking" breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Invoices' }]} actions={<Button leftIcon={<Plus className="w-4 h-4" />}>Create Invoice</Button>} />
+        <PageHeader title="Invoices" description="Invoice management and tracking" breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Invoices' }]} actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => toast('Create invoice form coming soon', 'info')}>Create Invoice</Button>} />
       </motion.div>
       <motion.div variants={staggerItem} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat) => (

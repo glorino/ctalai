@@ -14,9 +14,11 @@ import {
   ArrowRight,
   X,
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { AI_AGENTS } from '@/lib/constants'
 import type { LucideIcon } from 'lucide-react'
+import { useToast } from '@/components/ui/toast'
 
 const iconMap: Record<string, LucideIcon> = {
   Rocket,
@@ -186,6 +188,8 @@ function AgentDetail({
   onClose: () => void
 }) {
   const Icon = iconMap[agent.icon]
+  const router = useRouter()
+  const { toast } = useToast()
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -284,6 +288,10 @@ function AgentDetail({
 
           {/* CTA */}
           <button
+            onClick={() => {
+              toast(`Activating ${agent.name}...`, 'info')
+              router.push(`/dashboard/ai/${agent.id}`)
+            }}
             className="mt-6 w-full rounded-xl py-3 font-semibold text-white transition-all duration-300 hover:brightness-110 active:scale-[0.98]"
             style={{
               background: `linear-gradient(135deg, ${agent.color}, ${agent.color}aa)`,
