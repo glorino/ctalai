@@ -23,6 +23,7 @@ import { cn, formatCurrency } from '@/lib/utils'
 import Button from '@/components/ui/button'
 import Badge from '@/components/ui/badge'
 import AIInsight from '@/components/ui/ai-insight'
+import { useToast } from '@/components/ui/toast'
 
 interface DashboardData {
   counts: {
@@ -99,6 +100,7 @@ const priorityActions = [
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
+  const { toast } = useToast()
   const today = new Date().toLocaleDateString('en-NG', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 
   useEffect(() => {
@@ -239,8 +241,8 @@ export default function DashboardPage() {
             ))}
           </div>
           <div className="flex items-center gap-2 mt-4">
-            <Button size="sm" variant="outline">Review Actions</Button>
-            <Button size="sm">Ask AI</Button>
+            <Button size="sm" variant="outline" onClick={() => toast('Review Actions: 3 items need attention', 'info')}>Review Actions</Button>
+            <Button size="sm" onClick={() => toast('AI Assistant is being prepared...', 'info')}>Ask AI</Button>
           </div>
         </AIInsight>
       </motion.div>

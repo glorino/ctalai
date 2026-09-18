@@ -20,6 +20,7 @@ import Card from '@/components/ui/card'
 import Tabs from '@/components/ui/tabs'
 import AIInsight from '@/components/ui/ai-insight'
 import Dropdown from '@/components/ui/dropdown'
+import { useToast } from '@/components/ui/toast'
 
 interface Ticket {
   id: string
@@ -57,6 +58,7 @@ export default function SupportPage() {
   const [data, setData] = useState<SupportData | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
+  const { toast } = useToast()
 
   useEffect(() => {
     fetch('/api/support')
@@ -145,9 +147,9 @@ export default function SupportPage() {
               <Dropdown
                 trigger={<button className="p-1.5 rounded-lg text-text-muted hover:bg-surface-light"><MoreHorizontal className="w-4 h-4" /></button>}
                 items={[
-                  { label: 'Assign', onClick: () => {} },
-                  { label: 'Escalate', onClick: () => {} },
-                  { label: 'Resolve', onClick: () => {} },
+                  { label: 'Assign', onClick: () => toast('Assignment feature coming soon', 'info') },
+                  { label: 'Escalate', onClick: () => toast('Ticket escalated to management', 'success') },
+                  { label: 'Resolve', onClick: () => toast('Ticket marked as resolved', 'success') },
                 ]}
               />
             </div>
@@ -175,8 +177,8 @@ export default function SupportPage() {
           <AIInsight title="AI Suggested Response" className="mt-4">
             <p className="text-xs">AI will suggest responses based on the ticket category and historical resolutions. Configure your OpenAI API key in settings to enable this feature.</p>
             <div className="flex gap-2 mt-3">
-              <Button size="xs" leftIcon={<Send className="w-3 h-3" />}>Use Response</Button>
-              <Button size="xs" variant="outline">Edit</Button>
+              <Button size="xs" leftIcon={<Send className="w-3 h-3" />} onClick={() => toast('Configure OpenAI API key to enable AI responses', 'info')}>Use Response</Button>
+              <Button size="xs" variant="outline" onClick={() => toast('Response editor coming soon', 'info')}>Edit</Button>
             </div>
           </AIInsight>
         </motion.div>

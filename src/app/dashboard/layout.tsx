@@ -161,6 +161,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [searchOpen, setSearchOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({})
+  const [layoutToast, setLayoutToast] = useState<string | null>(null)
   const pathname = usePathname()
 
   useEffect(() => {
@@ -172,6 +173,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     setMobileOpen(false)
   }, [pathname])
+
+  useEffect(() => {
+    if (layoutToast) {
+      const t = setTimeout(() => setLayoutToast(null), 3000)
+      return () => clearTimeout(t)
+    }
+  }, [layoutToast])
 
   const toggleSection = (label: string) => {
     setExpandedSections((prev) => ({ ...prev, [label]: !prev[label] }))
@@ -414,7 +422,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       >
                         <div className="p-3 border-b border-border flex items-center justify-between">
                           <h3 className="text-sm font-semibold">Notifications</h3>
-                          <button className="text-xs text-primary hover:text-primary-dark">Mark all read</button>
+                           <button className="text-xs text-primary hover:text-primary-dark" onClick={() => setLayoutToast('All notifications marked as read')}>Mark all read</button>
                         </div>
                         <div className="max-h-80 overflow-y-auto">
                           {[
@@ -492,17 +500,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </div>
                 <div className="p-2 max-h-80 overflow-y-auto">
                   <p className="px-3 py-2 text-[11px] font-medium text-text-muted uppercase">Recent</p>
-                  {['Customer: Adebayo Tech Corp', 'Programme: Advanced Valuation', 'Invoice: CTAL-2408-0042'].map((item, i) => (
-                    <button key={i} className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-surface-muted transition-colors flex items-center gap-2">
+                  {[
+                    { label: 'Customer: Adebayo Tech Corp', href: '/dashboard/crm' },
+                    { label: 'Programme: Advanced Valuation', href: '/dashboard/programs' },
+                    { label: 'Invoice: CTAL-2408-0042', href: '/dashboard/finance' },
+                  ].map((item, i) => (
+                    <button key={i} onClick={() => { setLayoutToast(`Opening ${item.label}...`); setSearchOpen(false) }} className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-surface-muted transition-colors flex items-center gap-2">
                       <Search className="w-3.5 h-3.5 text-text-muted" />
-                      {item}
+                      {item.label}
                     </button>
                   ))}
                   <p className="px-3 py-2 text-[11px] font-medium text-text-muted uppercase mt-2">Quick Actions</p>
-                  {['Add new customer', 'Create invoice', 'Schedule coaching session'].map((item, i) => (
-                    <button key={i} className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-surface-muted transition-colors flex items-center gap-2">
+                  {[
+                    { label: 'Add new customer', href: '/dashboard/crm' },
+                    { label: 'Create invoice', href: '/dashboard/finance' },
+                    { label: 'Schedule coaching session', href: '/dashboard/coaching' },
+                  ].map((item, i) => (
+                    <button key={i} onClick={() => { setLayoutToast(`Opening ${item.label}...`); setSearchOpen(false) }} className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-surface-muted transition-colors flex items-center gap-2">
                       <Zap className="w-3.5 h-3.5 text-primary" />
-                      {item}
+                      {item.label}
                     </button>
                   ))}
                 </div>
@@ -511,6 +527,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           )}
         </AnimatePresence>
       </div>
+
+      {layoutToast && (
+        <div className="fixed bottom-4 right-4 z-[100] px-4 py-3 rounded-xl bg-surface border border-border shadow-lg text-sm flex items-center gap-2 pointer-events-none">
+          <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+          {layoutToast}
+        </div>
+      )}
     </ToastProvider>
   )
 }

@@ -17,6 +17,7 @@ import Badge from '@/components/ui/badge'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
 import Progress from '@/components/ui/progress'
+import { useToast } from '@/components/ui/toast'
 import AIInsight from '@/components/ui/ai-insight'
 
 interface Program {
@@ -34,6 +35,7 @@ interface Program {
 export default function ProgrammesPage() {
   const [programs, setPrograms] = useState<Program[]>([])
   const [loading, setLoading] = useState(true)
+  const { toast } = useToast()
 
   useEffect(() => {
     fetch('/api/programs')
@@ -99,7 +101,7 @@ export default function ProgrammesPage() {
               )}
               <div className="flex items-center justify-between mt-4">
                 <span className="text-sm font-semibold gradient-text">{prog._count.enrollments} enrolled</span>
-                <button className="text-xs text-primary hover:text-primary-dark flex items-center gap-1">
+                <button onClick={() => toast(`Opening ${prog.name} details...`, 'info')} className="text-xs text-primary hover:text-primary-dark flex items-center gap-1">
                   View Details <ChevronRight className="w-3 h-3" />
                 </button>
               </div>

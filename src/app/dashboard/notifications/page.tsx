@@ -6,6 +6,7 @@ import { staggerContainer, staggerItem } from '@/lib/motion'
 import { PageHeader } from '@/components/ui/card'
 import Card from '@/components/ui/card'
 import Badge from '@/components/ui/badge'
+import { useToast } from '@/components/ui/toast'
 
 const notifications = [
   { title: 'New payment received', desc: '₦125,000 from Adebayo Ogundimu', time: '2m ago', unread: true, category: 'Finance' },
@@ -25,6 +26,7 @@ const categoryColors: Record<string, string> = {
 }
 
 export default function NotificationsPage() {
+  const { toast } = useToast()
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
       <motion.div variants={staggerItem}>
@@ -34,7 +36,7 @@ export default function NotificationsPage() {
         <Card padding="none">
           <div className="px-6 py-4 border-b border-border flex items-center justify-between">
             <h3 className="text-sm font-semibold">All Notifications</h3>
-            <button className="text-xs text-primary hover:text-primary-dark">Mark all read</button>
+            <button onClick={() => toast('All notifications marked as read', 'success')} className="text-xs text-primary hover:text-primary-dark">Mark all read</button>
           </div>
           <div className="divide-y divide-border-light">
             {notifications.map((n, i) => (

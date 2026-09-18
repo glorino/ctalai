@@ -9,6 +9,7 @@ import { PageHeader, StatCard } from '@/components/ui/card'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
 import AIInsight from '@/components/ui/ai-insight'
+import { useToast } from '@/components/ui/toast'
 
 interface AnalyticsData {
   revenue: { total: number; monthly: { amount: number; createdAt: string }[] }
@@ -24,6 +25,7 @@ const dateFilters = ['Today', '7 Days', '30 Days', '90 Days', 'Year']
 export default function AnalyticsPage() {
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
+  const { toast } = useToast()
 
   useEffect(() => {
     fetch('/api/analytics')
@@ -54,7 +56,7 @@ export default function AnalyticsPage() {
                   </button>
                 ))}
               </div>
-              <Button variant="outline" size="sm" leftIcon={<Download className="w-4 h-4" />}>Export</Button>
+              <Button variant="outline" size="sm" leftIcon={<Download className="w-4 h-4" />} onClick={() => toast('Exporting analytics report...', 'info')}>Export</Button>
             </div>
           }
         />

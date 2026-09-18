@@ -21,6 +21,7 @@ import DataTable, { Column } from '@/components/ui/data-table'
 import Tabs from '@/components/ui/tabs'
 import Dropdown from '@/components/ui/dropdown'
 import AIInsight from '@/components/ui/ai-insight'
+import { useToast } from '@/components/ui/toast'
 
 interface Customer {
   id: string
@@ -55,6 +56,7 @@ export default function CRMPage() {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('all')
   const [stats, setStats] = useState<{ status: string; _count: number }[]>([])
+  const { toast } = useToast()
 
   useEffect(() => {
     fetch('/api/crm')
@@ -169,9 +171,9 @@ export default function CRMPage() {
                       </button>
                     }
                     items={[
-                      { label: 'View Profile', onClick: () => {}, icon: <Users className="w-4 h-4" /> },
-                      { label: 'Send Email', onClick: () => {}, icon: <Mail className="w-4 h-4" /> },
-                      { label: 'Call', onClick: () => {}, icon: <Phone className="w-4 h-4" /> },
+                      { label: 'View Profile', onClick: () => toast('Opening customer profile...', 'info'), icon: <Users className="w-4 h-4" /> },
+                      { label: 'Send Email', onClick: () => toast('Email composer opening...', 'info'), icon: <Mail className="w-4 h-4" /> },
+                      { label: 'Call', onClick: () => toast('Initiating call...', 'info'), icon: <Phone className="w-4 h-4" /> },
                     ]}
                   />
                 )}

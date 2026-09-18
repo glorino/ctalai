@@ -20,6 +20,7 @@ import DataTable, { Column } from '@/components/ui/data-table'
 import Tabs from '@/components/ui/tabs'
 import Dropdown from '@/components/ui/dropdown'
 import AIInsight from '@/components/ui/ai-insight'
+import { useToast } from '@/components/ui/toast'
 
 interface Lead {
   id: string
@@ -55,6 +56,7 @@ export default function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('all')
+  const { toast } = useToast()
   const [stats, setStats] = useState<{ status: string; _count: number }[]>([])
 
   useEffect(() => {
@@ -175,9 +177,9 @@ export default function LeadsPage() {
                       </button>
                     }
                     items={[
-                      { label: 'View Details', onClick: () => {}, icon: <Target className="w-4 h-4" /> },
-                      { label: 'Assign', onClick: () => {}, icon: <UserPlus className="w-4 h-4" /> },
-                      { label: 'Convert to Customer', onClick: () => {}, icon: <TrendingUp className="w-4 h-4" /> },
+                      { label: 'View Details', onClick: () => toast('Opening lead details...', 'info'), icon: <Target className="w-4 h-4" /> },
+                      { label: 'Assign', onClick: () => toast('Assignment feature coming soon', 'info'), icon: <UserPlus className="w-4 h-4" /> },
+                      { label: 'Convert to Customer', onClick: () => toast('Converting lead to customer...', 'info'), icon: <TrendingUp className="w-4 h-4" /> },
                     ]}
                   />
                 )}

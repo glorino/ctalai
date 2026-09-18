@@ -36,6 +36,7 @@ import AIInsight from '@/components/ui/ai-insight'
 import Progress from '@/components/ui/progress'
 import ActivityFeed from '@/components/ui/activity-feed'
 import Dropdown from '@/components/ui/dropdown'
+import { useToast } from '@/components/ui/toast'
 
 const customer = {
   name: 'Adebayo Ogundimu',
@@ -79,6 +80,7 @@ const invoices = [
 
 export default function CustomerDetailPage() {
   const [activeTab, setActiveTab] = useState('overview')
+  const { toast } = useToast()
 
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
@@ -112,16 +114,16 @@ export default function CustomerDetailPage() {
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" leftIcon={<Mail className="w-4 h-4" />}>Email</Button>
-              <Button variant="outline" size="sm" leftIcon={<Phone className="w-4 h-4" />}>Call</Button>
-              <Button variant="outline" size="sm" leftIcon={<MessageSquare className="w-4 h-4" />}>WhatsApp</Button>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button variant="outline" size="sm" leftIcon={<Mail className="w-4 h-4" />} onClick={() => toast('Email composer opening...', 'info')}>Email</Button>
+              <Button variant="outline" size="sm" leftIcon={<Phone className="w-4 h-4" />} onClick={() => toast('Initiating call...', 'info')}>Call</Button>
+              <Button variant="outline" size="sm" leftIcon={<MessageSquare className="w-4 h-4" />} onClick={() => toast('WhatsApp opening...', 'info')}>WhatsApp</Button>
               <Dropdown
                 trigger={<button className="p-2 rounded-lg border border-border text-text-muted hover:bg-surface-light"><MoreHorizontal className="w-4 h-4" /></button>}
                 items={[
-                  { label: 'Create Task', onClick: () => {} },
-                  { label: 'Schedule Meeting', onClick: () => {} },
-                  { label: 'Add Note', onClick: () => {} },
+                  { label: 'Create Task', onClick: () => toast('Task creation coming soon', 'info') },
+                  { label: 'Schedule Meeting', onClick: () => toast('Meeting scheduler coming soon', 'info') },
+                  { label: 'Add Note', onClick: () => toast('Note added', 'success') },
                 ]}
               />
             </div>
