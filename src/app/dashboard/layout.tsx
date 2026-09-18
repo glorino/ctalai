@@ -164,9 +164,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({})
   const [layoutToast, setLayoutToast] = useState<string | null>(null)
   const [notifications, setNotifications] = useState([
-    { title: 'New payment received', desc: '₦125,000 from Tech Corp', time: '2m ago', unread: true },
+    { title: 'New payment received', desc: 'Payment confirmed via Paystack', time: '2m ago', unread: true },
     { title: 'Lead requires follow-up', desc: 'High-value lead from webinar', time: '15m ago', unread: true },
-    { title: 'Programme engagement dropped', desc: 'Advanced Valuation Cohort', time: '1h ago', unread: false },
+    { title: 'Programme engagement dropped', desc: 'Attendance below threshold', time: '1h ago', unread: false },
     { title: 'AI agent escalated a customer', desc: 'Auto-escalation from Growth Agent', time: '2h ago', unread: false },
   ])
   const pathname = usePathname()

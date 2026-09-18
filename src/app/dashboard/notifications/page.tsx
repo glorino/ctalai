@@ -10,12 +10,12 @@ import Badge from '@/components/ui/badge'
 import { useToast } from '@/components/ui/toast'
 
 const initialNotifications = [
-  { title: 'New payment received', desc: '₦125,000 from Adebayo Ogundimu', time: '2m ago', unread: true, category: 'Finance' },
-  { title: 'Lead requires follow-up', desc: 'High-value lead from webinar: TechStart Nigeria', time: '15m ago', unread: true, category: 'Sales' },
-  { title: 'Programme engagement dropped', desc: 'Advanced Valuation Cohort 7 attendance below 85%', time: '1h ago', unread: false, category: 'Programmes' },
-  { title: 'AI agent escalated a customer', desc: 'Auto-escalation from Growth Agent for Chukwuma Eze', time: '2h ago', unread: false, category: 'AI' },
-  { title: 'Invoice overdue', desc: 'CTAL-2508-0040 for Lagos Business School', time: '3h ago', unread: false, category: 'Finance' },
-  { title: 'New support ticket', desc: 'Payment failed issue from Ibrahim Musa', time: '4h ago', unread: false, category: 'Support' },
+  { title: 'New payment received', desc: 'Payment confirmed via Paystack', time: '2m ago', unread: true, category: 'Finance' },
+  { title: 'Lead requires follow-up', desc: 'High-value lead from webinar', time: '15m ago', unread: true, category: 'Sales' },
+  { title: 'Programme engagement dropped', desc: 'Attendance below 85% threshold', time: '1h ago', unread: false, category: 'Programmes' },
+  { title: 'AI agent escalated a customer', desc: 'Auto-escalation from Growth Agent', time: '2h ago', unread: false, category: 'AI' },
+  { title: 'Invoice overdue', desc: 'Invoice past due date', time: '3h ago', unread: false, category: 'Finance' },
+  { title: 'New support ticket', desc: 'Payment issue reported', time: '4h ago', unread: false, category: 'Support' },
 ]
 
 const categoryColors: Record<string, string> = {

@@ -139,7 +139,7 @@ const agents = [
 const activityTimeline = [
   { time: '10:31', agent: 'Growth Agent', action: 'Qualified 14 leads from webinar funnel', type: 'success' },
   { time: '10:47', agent: 'Growth Agent', action: 'Sent follow-up sequence to 23 warm leads', type: 'success' },
-  { time: '11:04', agent: 'Growth Agent', action: 'Escalated high-value opportunity (₦3.5M) to sales team', type: 'warning' },
+  { time: '11:04', agent: 'Growth Agent', action: 'Escalated high-value opportunity to sales team', type: 'warning' },
   { time: '11:15', agent: 'Customer Success', action: 'Identified 3 at-risk customers and initiated outreach', type: 'success' },
   { time: '11:30', agent: 'Learning Agent', action: 'Sent reminder to 12 participants for upcoming session', type: 'success' },
   { time: '11:45', agent: 'Operations Agent', action: 'Updated 8 project statuses and notified stakeholders', type: 'success' },

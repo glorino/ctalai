@@ -112,7 +112,7 @@ export default function MarketingPage() {
 
       <motion.div variants={staggerItem}>
         <AIInsight title="AI Marketing Insight">
-          <p>Email campaigns have 2x higher conversion than social media. Recommend increasing email frequency. Webinar series generated ₦1.8M in revenue - consider monthly webinars. Retargeting campaign ROI is low - recommend pausing and testing new creatives.</p>
+          <p>Email campaigns have higher conversion than social media. Recommend increasing email frequency. Webinar series show strong engagement - consider monthly webinars. Review underperforming campaigns and test new creatives.</p>
         </AIInsight>
       </motion.div>
     </motion.div>
