@@ -29,7 +29,7 @@ export async function POST(request: Request) {
           customerId,
           platform: 'ctal-ai',
         },
-        callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/finance?payment=callback`,
+        callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment/callback`,
       }),
     })
 

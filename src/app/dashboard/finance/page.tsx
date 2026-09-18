@@ -20,6 +20,7 @@ import Card from '@/components/ui/card'
 import DataTable, { Column } from '@/components/ui/data-table'
 import AIInsight from '@/components/ui/ai-insight'
 import { useToast } from '@/components/ui/toast'
+import PaymentModal from '@/components/ui/payment-modal'
 
 interface Invoice {
   id: string
@@ -29,7 +30,7 @@ interface Invoice {
   status: string
   createdAt: string
   dueDate: string | null
-  customer: { name: string }
+  customer: { name: string; email: string | null }
 }
 
 interface FinanceData {
@@ -52,6 +53,10 @@ const statusVariant: Record<string, 'success' | 'warning' | 'error' | 'neutral'>
 export default function FinancePage() {
   const [data, setData] = useState<FinanceData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [paymentModal, setPaymentModal] = useState<{
+    open: boolean
+    invoice: Invoice | null
+  }>({ open: false, invoice: null })
   const router = useRouter()
   const { toast } = useToast()
 
@@ -107,6 +112,8 @@ export default function FinancePage() {
     },
   ]
 
+  const canPay = (status: string) => ['SENT', 'VIEWED', 'PARTIALLY_PAID', 'OVERDUE', 'DRAFT'].includes(status)
+
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
       <motion.div variants={staggerItem}>
@@ -158,11 +165,43 @@ export default function FinancePage() {
             {loading ? (
               <div className="space-y-3">{[1, 2, 3, 4].map((i) => <div key={i} className="skeleton h-12 rounded-lg" />)}</div>
             ) : (
-              <DataTable columns={columns} data={data?.invoices || []} searchable searchPlaceholder="Search invoices..." searchKey="invoiceNumber" />
+              <DataTable
+                columns={columns}
+                data={data?.invoices || []}
+                searchable
+                searchPlaceholder="Search invoices..."
+                searchKey="invoiceNumber"
+                actions={(item) =>
+                  canPay(item.status) ? (
+                    <Button
+                      size="xs"
+                      variant="outline"
+                      onClick={() =>
+                        setPaymentModal({
+                          open: true,
+                          invoice: item,
+                        })
+                      }
+                    >
+                      Pay
+                    </Button>
+                  ) : null
+                }
+              />
             )}
           </div>
         </Card>
       </motion.div>
+
+      <PaymentModal
+        isOpen={paymentModal.open}
+        onClose={() => setPaymentModal({ open: false, invoice: null })}
+        invoiceId={paymentModal.invoice?.id || ''}
+        amount={paymentModal.invoice?.total || 0}
+        customerEmail={paymentModal.invoice?.customer?.email || ''}
+        customerName={paymentModal.invoice?.customer?.name || ''}
+        invoiceNumber={paymentModal.invoice?.invoiceNumber}
+      />
     </motion.div>
   )
 }

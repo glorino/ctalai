@@ -9,6 +9,7 @@ import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
 import Badge from '@/components/ui/badge'
 import { useToast } from '@/components/ui/toast'
+import PaymentModal from '@/components/ui/payment-modal'
 
 const statusVariant: Record<string, 'success' | 'warning' | 'error' | 'primary' | 'neutral'> = {
   PAID: 'success',
@@ -18,22 +19,53 @@ const statusVariant: Record<string, 'success' | 'warning' | 'error' | 'primary' 
   DRAFT: 'neutral',
 }
 
+interface InvoiceItem {
+  id: string
+  number: string
+  customer: string
+  customerEmail: string
+  customerId: string
+  date: string
+  dueDate: string
+  amount: string
+  total: number
+  status: string
+}
+
 export default function InvoicesPage() {
   const { toast } = useToast()
-  const [invoices, setInvoices] = useState<any[]>([])
+  const [invoices, setInvoices] = useState<InvoiceItem[]>([])
   const [stats, setStats] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [paymentModal, setPaymentModal] = useState<{
+    open: boolean
+    invoice: InvoiceItem | null
+  }>({ open: false, invoice: null })
 
   useEffect(() => {
     fetch('/api/invoices')
       .then((res) => res.json())
       .then((d) => {
-        setInvoices(d.items || d.invoices || d.data || [])
+        const items = (d.items || d.invoices || d.data || []).map((inv: any) => ({
+          id: inv.id,
+          number: inv.invoiceNumber || inv.number,
+          customer: inv.customer?.name || inv.customer || 'Unknown',
+          customerEmail: inv.customer?.email || '',
+          customerId: inv.customerId || '',
+          date: inv.createdAt ? new Date(inv.createdAt).toLocaleDateString('en-NG') : inv.date || '',
+          dueDate: inv.dueDate ? new Date(inv.dueDate).toLocaleDateString('en-NG') : inv.dueDate || '',
+          amount: inv.total ? `₦${inv.total.toLocaleString()}` : inv.amount || '₦0',
+          total: inv.total || 0,
+          status: inv.status,
+        }))
+        setInvoices(items)
         setStats(d.stats || [])
       })
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
+
+  const canPay = (status: string) => ['SENT', 'VIEWED', 'DRAFT', 'OVERDUE'].includes(status)
 
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
@@ -57,8 +89,8 @@ export default function InvoicesPage() {
             <div className="p-6 space-y-3">{[1, 2, 3].map((i) => <div key={i} className="skeleton h-16 rounded-lg" />)}</div>
           ) : (
             <div className="divide-y divide-border-light">
-              {invoices.map((inv: any) => (
-                <div key={inv.number} className="px-6 py-4 flex items-center justify-between hover:bg-surface-light transition-colors">
+              {invoices.map((inv) => (
+                <div key={inv.id || inv.number} className="px-6 py-4 flex items-center justify-between hover:bg-surface-light transition-colors">
                   <div>
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-medium">{inv.number}</p>
@@ -66,13 +98,34 @@ export default function InvoicesPage() {
                     </div>
                     <p className="text-xs text-text-muted mt-0.5">{inv.customer} | Issued: {inv.date} | Due: {inv.dueDate}</p>
                   </div>
-                  <p className="text-sm font-semibold">{inv.amount}</p>
+                  <div className="flex items-center gap-3">
+                    <p className="text-sm font-semibold">{inv.amount}</p>
+                    {canPay(inv.status) && (
+                      <Button
+                        size="xs"
+                        variant="outline"
+                        onClick={() => setPaymentModal({ open: true, invoice: inv })}
+                      >
+                        Pay
+                      </Button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </Card>
       </motion.div>
+
+      <PaymentModal
+        isOpen={paymentModal.open}
+        onClose={() => setPaymentModal({ open: false, invoice: null })}
+        invoiceId={paymentModal.invoice?.id || ''}
+        amount={paymentModal.invoice?.total || 0}
+        customerEmail={paymentModal.invoice?.customerEmail || ''}
+        customerName={paymentModal.invoice?.customer || ''}
+        invoiceNumber={paymentModal.invoice?.number}
+      />
     </motion.div>
   )
 }
