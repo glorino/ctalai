@@ -2,6 +2,16 @@ export const APP_NAME = 'CTAL AI'
 export const APP_DESCRIPTION = 'AI-Powered Operating System for Growth'
 export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://ctalai.vercel.app'
 
+export const COMPANY = {
+  name: 'CoreSkills Transformational Academy Limited',
+  shortName: 'CTAL',
+  tagline: 'AI-Powered Operating System for Growth',
+  email: 'hello@ctalai.com',
+  phone: '+234 800 123 4567',
+  address: '42 Adeola Odeku, Victoria Island, Lagos, Nigeria',
+  website: 'https://ctalai.vercel.app',
+}
+
 export const COLORS = {
   primary: '#3452ff',
   primaryLight: '#5a7aff',
@@ -17,6 +27,19 @@ export const COLORS = {
   success: '#10b981',
   warning: '#f59e0b',
   error: '#ef4444',
+}
+
+export const CURRENCY = {
+  code: 'NGN',
+  symbol: '₦',
+  name: 'Nigerian Naira',
+}
+
+export const SOCIAL_LINKS = {
+  twitter: 'https://twitter.com/ctalai',
+  linkedin: 'https://linkedin.com/company/ctalai',
+  instagram: 'https://instagram.com/ctalai',
+  youtube: 'https://youtube.com/@ctalai',
 }
 
 export const FEATURES = [

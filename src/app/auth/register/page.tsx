@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { signIn } from 'next-auth/react'
 import { motion } from 'framer-motion'
-import { Mail, Lock, Eye, EyeOff, ArrowRight, User, Building2, Sparkles } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, ArrowRight, User, Building2, Sparkles, AlertCircle } from 'lucide-react'
 import Input from '@/components/ui/input'
 import Button from '@/components/ui/button'
 import Select from '@/components/ui/select'
@@ -11,13 +12,48 @@ import Select from '@/components/ui/select'
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [organisation, setOrganisation] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setTimeout(() => {
-      window.location.href = '/dashboard'
-    }, 1000)
+    setError('')
+
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password, organisation }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        setError(data.error || 'Failed to create account')
+        setLoading(false)
+        return
+      }
+
+      // Auto sign in after registration
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      })
+
+      if (result?.error) {
+        window.location.href = '/auth/login'
+      } else {
+        window.location.href = '/dashboard'
+      }
+    } catch {
+      setError('An error occurred. Please try again.')
+      setLoading(false)
+    }
   }
 
   return (
@@ -74,29 +110,47 @@ export default function RegisterPage() {
           <h2 className="text-2xl font-bold mb-1">Create your account</h2>
           <p className="text-sm text-text-muted mb-8">Get started with CTAL AI in minutes</p>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <Input label="First name" placeholder="John" leftIcon={<User className="w-4 h-4" />} />
-              <Input label="Last name" placeholder="Doe" />
+          {error && (
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-error/10 border border-error/20 text-error text-sm mb-4">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              {error}
             </div>
-            <Input label="Work email" type="email" placeholder="john@company.com" leftIcon={<Mail className="w-4 h-4" />} />
-            <Input label="Organisation" placeholder="Company name" leftIcon={<Building2 className="w-4 h-4" />} />
-            <Select
-              label="I am a"
-              options={[
-                { value: 'business-owner', label: 'Business Owner' },
-                { value: 'operations', label: 'Operations Manager' },
-                { value: 'training', label: 'Training Provider' },
-                { value: 'consultant', label: 'Consultant' },
-                { value: 'other', label: 'Other' },
-              ]}
-              placeholder="Select your role"
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <Input
+              label="Full name"
+              placeholder="John Doe"
+              leftIcon={<User className="w-4 h-4" />}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+            <Input
+              label="Work email"
+              type="email"
+              placeholder="john@company.com"
+              leftIcon={<Mail className="w-4 h-4" />}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <Input
+              label="Organisation"
+              placeholder="Company name"
+              leftIcon={<Building2 className="w-4 h-4" />}
+              value={organisation}
+              onChange={(e) => setOrganisation(e.target.value)}
             />
             <Input
               label="Password"
               type={showPassword ? 'text' : 'password'}
               placeholder="Create a strong password"
               leftIcon={<Lock className="w-4 h-4" />}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={8}
               rightIcon={
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-text-muted hover:text-foreground">
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}

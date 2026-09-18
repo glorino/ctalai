@@ -2,21 +2,41 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { signIn } from 'next-auth/react'
 import { motion } from 'framer-motion'
-import { Mail, Lock, Eye, EyeOff, ArrowRight, Sparkles } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, ArrowRight, Sparkles, AlertCircle } from 'lucide-react'
 import Input from '@/components/ui/input'
 import Button from '@/components/ui/button'
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setTimeout(() => {
-      window.location.href = '/dashboard'
-    }, 1000)
+    setError('')
+
+    try {
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      })
+
+      if (result?.error) {
+        setError('Invalid email or password. Please try again.')
+        setLoading(false)
+      } else {
+        window.location.href = '/dashboard'
+      }
+    } catch {
+      setError('An error occurred. Please try again.')
+      setLoading(false)
+    }
   }
 
   return (
@@ -73,18 +93,31 @@ export default function LoginPage() {
           <h2 className="text-2xl font-bold mb-1">Welcome back</h2>
           <p className="text-sm text-text-muted mb-8">Sign in to your account to continue</p>
 
+          {error && (
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-error/10 border border-error/20 text-error text-sm mb-4">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
               label="Email"
               type="email"
               placeholder="john@company.com"
               leftIcon={<Mail className="w-4 h-4" />}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
             />
             <Input
               label="Password"
               type={showPassword ? 'text' : 'password'}
               placeholder="Enter your password"
               leftIcon={<Lock className="w-4 h-4" />}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
               rightIcon={
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-text-muted hover:text-foreground">
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}

@@ -1,0 +1,24 @@
+import { NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+
+export async function GET() {
+  try {
+    const sessions = await prisma.coachingSession.findMany({
+      include: {
+        customer: { select: { name: true, email: true } },
+        coach: { include: { user: { select: { name: true } } } },
+      },
+      orderBy: { scheduledAt: 'desc' },
+    })
+
+    const stats = await prisma.coachingSession.groupBy({
+      by: ['status'],
+      _count: true,
+    })
+
+    return NextResponse.json({ sessions, stats })
+  } catch (error) {
+    console.error('Coaching API error:', error)
+    return NextResponse.json({ error: 'Failed to fetch coaching data' }, { status: 500 })
+  }
+}
