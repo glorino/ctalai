@@ -32,6 +32,10 @@ export const metadata: Metadata = {
     "Africa",
   ],
   authors: [{ name: "CoreSkills Transformational Academy Limited" }],
+  icons: {
+    icon: "/favicon.png",
+    apple: "/logo/Coreskills_logo.png",
+  },
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -42,7 +46,7 @@ export const metadata: Metadata = {
       "Transform your business with AI-powered automation. From lead generation to customer success.",
     images: [
       {
-        url: "/og-image.png",
+        url: "/logo/Coreskills_logo.png",
         width: 1200,
         height: 630,
         alt: "CTAL AI",
@@ -54,7 +58,7 @@ export const metadata: Metadata = {
     title: "CTAL AI - AI-Powered Operating System for Growth",
     description:
       "Transform your business with AI-powered automation.",
-    images: ["/og-image.png"],
+    images: ["/logo/Coreskills_logo.png"],
   },
   robots: {
     index: true,

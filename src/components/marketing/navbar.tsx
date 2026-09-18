@@ -26,10 +26,8 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-              <span className="text-white font-bold text-lg">C</span>
-            </div>
+          <Link href="/" className="flex items-center gap-2.5">
+            <img src="/logo/Coreskills_logo.png" alt="CTAL AI" className="w-10 h-10 rounded-xl object-contain" />
             <span className="text-xl font-bold font-[family-name:var(--font-space-grotesk)] text-foreground">
               CTAL AI
             </span>

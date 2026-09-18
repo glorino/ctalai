@@ -102,7 +102,7 @@ export default function SettingsPage() {
                 <Input label="Phone" defaultValue={COMPANY.phone} />
                 <Input label="Website" defaultValue={COMPANY.website} />
                 <Input label="Address" defaultValue={COMPANY.address} />
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Select label="Currency" options={[{ value: 'NGN', label: '\u20a6 NGN' }, { value: 'USD', label: '$ USD' }]} defaultValue="NGN" />
                   <Select label="Timezone" options={[{ value: 'Africa/Lagos', label: 'WAT (Africa/Lagos)' }, { value: 'UTC', label: 'UTC' }]} defaultValue="Africa/Lagos" />
                 </div>

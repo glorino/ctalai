@@ -64,7 +64,7 @@ export default function PartnersPage() {
           </div>
           <div className="divide-y divide-border-light">
             {partners.map((partner) => (
-              <div key={partner.name} className="px-6 py-4 flex items-center gap-4 hover:bg-surface-light transition-colors cursor-pointer">
+              <div key={partner.name} className="px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 hover:bg-surface-light transition-colors cursor-pointer">
                 <Avatar name={partner.name} size="md" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
@@ -73,11 +73,11 @@ export default function PartnersPage() {
                   </div>
                   <p className="text-xs text-text-muted mt-0.5">{partner.type} | {partner.agreements} agreements | {partner.meetings} meetings</p>
                 </div>
-                <div className="text-right">
+                <div className="flex sm:flex-col sm:items-end gap-2 sm:gap-0">
                   <p className="text-sm font-semibold">{partner.value}</p>
                   <p className="text-xs text-text-muted">Next review: {partner.nextReview}</p>
                 </div>
-                <ChevronRight className="w-4 h-4 text-text-muted shrink-0" />
+                <ChevronRight className="w-4 h-4 text-text-muted shrink-0 hidden sm:block" />
               </div>
             ))}
           </div>

@@ -111,7 +111,7 @@ export default function FinancePage() {
           description="Revenue, payments, and financial overview"
           breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Finance' }]}
           actions={
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Button variant="outline" size="sm" leftIcon={<Download className="w-4 h-4" />}>Export</Button>
               <Button size="sm" leftIcon={<Plus className="w-4 h-4" />}>Create Invoice</Button>
             </div>

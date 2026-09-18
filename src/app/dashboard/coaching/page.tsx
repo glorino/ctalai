@@ -85,7 +85,7 @@ export default function CoachingPage() {
             ) : (
               <div className="divide-y divide-border-light">
                 {(data?.sessions || []).map((session) => (
-                  <div key={session.id} className="px-6 py-4 flex items-center gap-4 hover:bg-surface-light transition-colors cursor-pointer">
+                  <div key={session.id} className="px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 hover:bg-surface-light transition-colors cursor-pointer">
                     <Avatar name={session.customer.name} size="sm" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
@@ -96,7 +96,7 @@ export default function CoachingPage() {
                         {session.coach?.user?.name || 'Unassigned'} | {session.duration}min | {new Date(session.scheduledAt).toLocaleDateString('en-NG')}
                       </p>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-text-muted shrink-0" />
+                    <ChevronRight className="w-4 h-4 text-text-muted shrink-0 hidden sm:block" />
                   </div>
                 ))}
                 {(!data?.sessions || data.sessions.length === 0) && (

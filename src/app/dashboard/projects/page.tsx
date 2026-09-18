@@ -75,7 +75,7 @@ export default function ProjectsPage() {
           ) : (
             <div className="space-y-3">
               {projects.map((proj) => (
-                <div key={proj.id} className="flex items-center gap-4 p-3 rounded-xl bg-surface-light hover:bg-surface-muted transition-colors">
+                <div key={proj.id} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 rounded-xl bg-surface-light hover:bg-surface-muted transition-colors">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-medium">{proj.name}</p>
@@ -87,11 +87,13 @@ export default function ProjectsPage() {
                       {' | '}{proj.tasks.filter(t => t.status === 'DONE').length}/{proj._count.tasks} tasks
                     </p>
                   </div>
-                  <div className="w-24">
-                    <Progress value={proj.progress} size="sm" />
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-semibold">{proj.progress}%</p>
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="w-24">
+                      <Progress value={proj.progress} size="sm" />
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-semibold">{proj.progress}%</p>
+                    </div>
                   </div>
                 </div>
               ))}

@@ -46,10 +46,10 @@ export default function AnalyticsPage() {
           description="Business intelligence and performance analytics"
           breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Analytics' }]}
           actions={
-            <div className="flex items-center gap-2">
-              <div className="flex items-center bg-surface-muted rounded-lg p-0.5">
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center bg-surface-muted rounded-lg p-0.5 overflow-x-auto">
                 {dateFilters.map((f) => (
-                  <button key={f} className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${f === '30 Days' ? 'bg-surface text-foreground shadow-sm' : 'text-text-muted hover:text-foreground'}`}>
+                  <button key={f} className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap ${f === '30 Days' ? 'bg-surface text-foreground shadow-sm' : 'text-text-muted hover:text-foreground'}`}>
                     {f}
                   </button>
                 ))}

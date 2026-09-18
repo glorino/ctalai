@@ -78,20 +78,20 @@ export default function HRPage() {
           ) : (
             <div className="divide-y divide-border-light">
               {(data?.staff || []).map((emp) => (
-                <div key={emp.id} className="px-6 py-4 flex items-center gap-4 hover:bg-surface-light transition-colors cursor-pointer">
+                <div key={emp.id} className="px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 hover:bg-surface-light transition-colors cursor-pointer">
                   <Avatar name={emp.user.name} size="md" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-medium">{emp.user.name}</p>
                       <Badge variant={statusVariant[emp.status] || 'neutral'} dot size="sm">{emp.status.replace('_', ' ')}</Badge>
                     </div>
-                    <p className="text-xs text-text-muted mt-0.5">{emp.position} | {emp.department} | {emp.employeeId}</p>
+                    <p className="text-xs text-text-muted mt-0.5">{emp.position} | {emp.department}</p>
                   </div>
-                  <div className="text-right">
+                  <div className="flex sm:flex-col sm:items-end gap-2 sm:gap-0">
                     <p className="text-sm font-semibold">{emp._count.kpis} KPIs</p>
                     <p className="text-xs text-text-muted">{emp._count.performances} reviews</p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-text-muted shrink-0" />
+                  <ChevronRight className="w-4 h-4 text-text-muted shrink-0 hidden sm:block" />
                 </div>
               ))}
               {(!data?.staff || data.staff.length === 0) && (

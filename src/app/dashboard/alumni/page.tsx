@@ -67,7 +67,7 @@ export default function AlumniPage() {
           ) : (
             <div className="divide-y divide-border-light">
               {alumni.map((person) => (
-                <div key={person.id} className="px-6 py-4 flex items-center gap-4 hover:bg-surface-light transition-colors cursor-pointer">
+                <div key={person.id} className="px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 hover:bg-surface-light transition-colors cursor-pointer">
                   <Avatar name={person.currentRole || 'Alumni'} size="md" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
@@ -75,7 +75,7 @@ export default function AlumniPage() {
                       {person.isAvailableForMentoring && <Badge variant="success" size="sm">Available</Badge>}
                     </div>
                     <p className="text-xs text-text-muted mt-0.5">{person.company || 'N/A'}</p>
-                    <div className="flex items-center gap-3 mt-1 text-xs text-text-muted">
+                    <div className="flex items-center gap-3 mt-1 text-xs text-text-muted flex-wrap">
                       {person.programme && <span className="flex items-center gap-1"><GraduationCap className="w-3 h-3" />{person.programme}</span>}
                       {person.graduationYear && <span>{person.graduationYear}</span>}
                       <span className="flex items-center gap-1"><Handshake className="w-3 h-3" />{person._count.connections} connections</span>

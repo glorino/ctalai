@@ -80,7 +80,7 @@ export default function ProgrammesPage() {
                 </div>
                 <Badge variant="success" dot>Active</Badge>
               </div>
-              <div className="grid grid-cols-3 gap-3 mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
                 <div>
                   <p className="text-[10px] text-text-muted uppercase tracking-wider">Enrolled</p>
                   <p className="text-sm font-semibold">{prog._count.enrollments}{prog.capacity ? `/${prog.capacity}` : ''}</p>

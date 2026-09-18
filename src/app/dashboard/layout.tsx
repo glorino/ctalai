@@ -202,9 +202,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {/* Logo */}
           <div className="h-14 flex items-center px-4 border-b border-border shrink-0">
             <Link href="/" className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center shrink-0">
-                <span className="text-white font-bold text-sm">C</span>
-              </div>
+              <img src="/logo/Coreskills_logo.png" alt="CTAL AI" className="w-8 h-8 rounded-lg object-contain shrink-0" />
               <AnimatePresence>
                 {!collapsed && (
                   <motion.span
@@ -333,9 +331,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               >
                 <div className="h-14 flex items-center justify-between px-4 border-b border-border shrink-0">
                   <Link href="/" className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-                      <span className="text-white font-bold text-sm">C</span>
-                    </div>
+                    <img src="/logo/Coreskills_logo.png" alt="CTAL AI" className="w-8 h-8 rounded-lg object-contain" />
                     <span className="text-base font-bold font-[family-name:var(--font-space-grotesk)]">CTAL AI</span>
                   </Link>
                   <button onClick={() => setMobileOpen(false)} className="p-1.5 rounded-lg text-text-muted hover:text-foreground">

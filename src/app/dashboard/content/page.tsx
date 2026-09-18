@@ -67,14 +67,16 @@ export default function ContentPage() {
           ) : (
             <div className="divide-y divide-border-light">
               {content.map((item) => (
-                <div key={item.id} className="px-6 py-4 flex items-center gap-4 hover:bg-surface-light transition-colors cursor-pointer">
-                  <FileText className="w-5 h-5 text-text-muted shrink-0" />
+                <div key={item.id} className="px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 hover:bg-surface-light transition-colors cursor-pointer">
+                  <FileText className="w-5 h-5 text-text-muted shrink-0 hidden sm:block" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium">{item.title}</p>
                     <p className="text-xs text-text-muted mt-0.5">{item.type} {item.tags.length > 0 ? `\u2022 ${item.tags.join(', ')}` : ''}</p>
                   </div>
-                  <Badge variant={statusVariant[item.status] || 'neutral'} dot>{item.status}</Badge>
-                  <span className="text-xs text-text-muted">{new Date(item.createdAt).toLocaleDateString('en-NG')}</span>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={statusVariant[item.status] || 'neutral'} dot>{item.status}</Badge>
+                    <span className="text-xs text-text-muted">{new Date(item.createdAt).toLocaleDateString('en-NG')}</span>
+                  </div>
                 </div>
               ))}
               {content.length === 0 && (
