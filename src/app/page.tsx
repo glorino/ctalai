@@ -7,6 +7,7 @@ import Features from '@/components/marketing/features'
 import Agents from '@/components/marketing/agents'
 import Journey from '@/components/marketing/journey'
 import Footer from '@/components/marketing/footer'
+import { Sparkles } from 'lucide-react'
 import Button from '@/components/ui/button'
 
 export default function Home() {
@@ -20,13 +21,22 @@ export default function Home() {
       <Journey />
       
       {/* CTA Section */}
-      <section className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-primary/5 to-background" />
+      <section className="py-28 relative overflow-hidden">
+        <div className="cta-mesh-bg absolute inset-0" />
+        {/* Decorative orbs */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full bg-primary/5 blur-[120px] pointer-events-none" />
+        <div className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full bg-secondary/5 blur-[100px] pointer-events-none" />
+        {/* Grid overlay */}
+        <div className="grid-pattern absolute inset-0 opacity-30 pointer-events-none" />
         <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 font-[family-name:var(--font-space-grotesk)]">
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm text-primary mb-8">
+            <Sparkles className="w-4 h-4" />
+            Limited spots available
+          </div>
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 font-[family-name:var(--font-space-grotesk)] tracking-tight">
             Ready to <span className="gradient-text">Transform</span> Your Business?
           </h2>
-          <p className="text-xl text-text-muted mb-8 max-w-2xl mx-auto">
+          <p className="text-xl text-text-muted mb-10 max-w-2xl mx-auto leading-relaxed">
             Join hundreds of businesses already using CTAL AI to automate their operations 
             and scale without increasing costs.
           </p>

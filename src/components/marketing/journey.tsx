@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import {
   LogIn,
   Scan,
@@ -65,19 +65,40 @@ interface JourneyStepProps {
 
 function JourneyStep({ step, index, total }: JourneyStepProps) {
   const ref = useRef<HTMLDivElement>(null)
+  const [isVisible, setIsVisible] = useState(false)
   const isLeft = index % 2 === 0
   const Icon = iconMap[step.icon]
   const color = getStepColor(index, total)
   const gradient = getStepGradient(index, total)
 
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true)
+        }
+      },
+      { threshold: 0.2 }
+    )
+    if (ref.current) observer.observe(ref.current)
+    return () => observer.disconnect()
+  }, [])
+
   return (
-    <div ref={ref} className="relative flex items-center justify-center">
+    <div
+      ref={ref}
+      className={cn(
+        'relative flex items-center justify-center transition-all duration-700',
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+      )}
+      style={{ transitionDelay: `${index * 80}ms` }}
+    >
       {/* Desktop: alternating layout */}
       <div className="hidden md:grid md:grid-cols-[1fr_80px_1fr] w-full items-center">
         {/* Left card */}
         {isLeft ? (
           <div className="flex justify-end pr-4">
-            <StepCard step={step} index={index} total={total} color={color} gradient={gradient} Icon={Icon!} side="left" />
+            <StepCard step={step} index={index} total={total} color={color} gradient={gradient} Icon={Icon!} side="left" isVisible={isVisible} />
           </div>
         ) : (
           <div />
@@ -87,10 +108,11 @@ function JourneyStep({ step, index, total }: JourneyStepProps) {
         <div className="flex flex-col items-center relative">
           <div className="relative z-10">
             <div
-              className="w-14 h-14 rounded-full flex items-center justify-center border-2 relative"
+              className="w-14 h-14 rounded-full flex items-center justify-center border-2 relative transition-all duration-500"
               style={{
                 borderColor: color,
                 background: `rgba(${index / total < 0.5 ? '52,82,255' : '255,16,83'},0.1)`,
+                boxShadow: isVisible ? `0 0 20px ${color}20` : 'none',
               }}
             >
               <span className="text-sm font-bold" style={{ color }}>
@@ -103,9 +125,10 @@ function JourneyStep({ step, index, total }: JourneyStepProps) {
             </div>
             {index < total - 1 && (
               <div
-                className="absolute top-full left-1/2 -translate-x-1/2 w-0.5 h-20 origin-top"
+                className="absolute top-full left-1/2 -translate-x-1/2 w-0.5 h-20 origin-top transition-all duration-700"
                 style={{
                   background: `linear-gradient(to bottom, ${color}, ${getStepColor(index + 1, total)})`,
+                  opacity: isVisible ? 1 : 0.3,
                 }}
               />
             )}
@@ -115,7 +138,7 @@ function JourneyStep({ step, index, total }: JourneyStepProps) {
         {/* Right card */}
         {!isLeft ? (
           <div className="flex justify-start pl-4">
-            <StepCard step={step} index={index} total={total} color={color} gradient={gradient} Icon={Icon!} side="right" />
+            <StepCard step={step} index={index} total={total} color={color} gradient={gradient} Icon={Icon!} side="right" isVisible={isVisible} />
           </div>
         ) : (
           <div />
@@ -127,10 +150,11 @@ function JourneyStep({ step, index, total }: JourneyStepProps) {
         <div className="flex flex-col items-center flex-shrink-0">
           <div className="relative z-10">
             <div
-              className="w-12 h-12 rounded-full flex items-center justify-center border-2"
+              className="w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-500"
               style={{
                 borderColor: color,
                 background: `rgba(${index / total < 0.5 ? '52,82,255' : '255,16,83'},0.1)`,
+                boxShadow: isVisible ? `0 0 16px ${color}20` : 'none',
               }}
             >
               <span className="text-xs font-bold" style={{ color }}>
@@ -139,16 +163,17 @@ function JourneyStep({ step, index, total }: JourneyStepProps) {
             </div>
             {index < total - 1 && (
               <div
-                className="absolute top-full left-1/2 -translate-x-1/2 w-0.5 h-16 origin-top"
+                className="absolute top-full left-1/2 -translate-x-1/2 w-0.5 h-16 origin-top transition-all duration-700"
                 style={{
                   background: `linear-gradient(to bottom, ${color}, ${getStepColor(index + 1, total)})`,
+                  opacity: isVisible ? 1 : 0.3,
                 }}
               />
             )}
           </div>
         </div>
         <div className="flex-1 pb-8">
-          <StepCard step={step} index={index} total={total} color={color} gradient={gradient} Icon={Icon!} side="left" mobile />
+          <StepCard step={step} index={index} total={total} color={color} gradient={gradient} Icon={Icon!} side="left" mobile isVisible={isVisible} />
         </div>
       </div>
     </div>
@@ -164,9 +189,20 @@ interface StepCardProps {
   Icon: LucideIcon
   side: 'left' | 'right'
   mobile?: boolean
+  isVisible: boolean
 }
 
-function StepCard({ step, index, total, color, gradient, Icon, side, mobile }: StepCardProps) {
+function StepCard({ step, index, total, color, gradient, Icon, side, mobile, isVisible }: StepCardProps) {
+  const [progressWidth, setProgressWidth] = useState(0)
+  const targetWidth = ((index + 1) / total) * 100
+
+  useEffect(() => {
+    if (isVisible) {
+      const timer = setTimeout(() => setProgressWidth(targetWidth), 200 + index * 100)
+      return () => clearTimeout(timer)
+    }
+  }, [isVisible, index, targetWidth])
+
   return (
     <div
       className={cn(
@@ -222,14 +258,15 @@ function StepCard({ step, index, total, color, gradient, Icon, side, mobile }: S
         {step.description}
       </p>
 
-      {/* Progress bar */}
+      {/* Progress bar with animated fill */}
       <div className="mt-5 flex items-center gap-3">
-        <div className="flex-1 h-1 rounded-full bg-border overflow-hidden">
+        <div className="flex-1 h-1.5 rounded-full bg-border overflow-hidden">
           <div
-            className="h-full rounded-full"
+            className="h-full rounded-full transition-all duration-1000 ease-out"
             style={{
-              width: `${((index + 1) / total) * 100}%`,
+              width: `${progressWidth}%`,
               background: gradient,
+              transitionDelay: `${index * 100}ms`,
             }}
           />
         </div>
@@ -242,8 +279,25 @@ function StepCard({ step, index, total, color, gradient, Icon, side, mobile }: S
 }
 
 export default function Journey() {
+  const [scrollProgress, setScrollProgress] = useState(0)
+  const sectionRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleScroll() {
+      if (!sectionRef.current) return
+      const rect = sectionRef.current.getBoundingClientRect()
+      const windowHeight = window.innerHeight
+      const progress = Math.min(1, Math.max(0, 1 - (rect.bottom - windowHeight) / (rect.height + windowHeight)))
+      setScrollProgress(progress)
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    handleScroll()
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
   return (
-    <section className="relative py-24 sm:py-32 overflow-hidden bg-background">
+    <section ref={sectionRef} className="relative py-24 sm:py-32 overflow-hidden bg-background">
       {/* Background decorations */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[900px] rounded-full bg-primary/3 blur-[150px]" />
@@ -282,12 +336,12 @@ export default function Journey() {
 
         {/* Journey Timeline */}
         <div className="relative">
-          {/* Scroll progress indicator */}
+          {/* Scroll progress indicator - Desktop */}
           <div className="hidden md:block absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-0.5 bg-border">
             <div
-              className="w-full rounded-full origin-top"
+              className="w-full rounded-full origin-top transition-all duration-300"
               style={{
-                height: '100%',
+                height: `${scrollProgress * 100}%`,
                 background: `linear-gradient(to bottom, ${COLORS.primary}, ${COLORS.secondary})`,
               }}
             />
@@ -296,9 +350,9 @@ export default function Journey() {
           {/* Mobile progress indicator */}
           <div className="md:hidden absolute left-6 top-0 bottom-0 w-0.5 bg-border">
             <div
-              className="w-full rounded-full origin-top"
+              className="w-full rounded-full origin-top transition-all duration-300"
               style={{
-                height: '100%',
+                height: `${scrollProgress * 100}%`,
                 background: `linear-gradient(to bottom, ${COLORS.primary}, ${COLORS.secondary})`,
               }}
             />
@@ -326,8 +380,11 @@ export default function Journey() {
                 return (
                   <div
                     key={i}
-                    className="h-1.5 w-6 rounded-full"
-                    style={{ background: color }}
+                    className="h-1.5 w-6 rounded-full transition-all duration-300"
+                    style={{
+                      background: color,
+                      opacity: scrollProgress > i / CUSTOMER_JOURNEY.length ? 1 : 0.3,
+                    }}
                   />
                 )
               })}

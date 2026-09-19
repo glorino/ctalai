@@ -67,6 +67,8 @@ function ConnectionLines({ connections }: { connections: ConnectionLine[] }) {
           stroke={conn.color}
           strokeWidth="1"
           strokeOpacity="0.15"
+          className="connection-line-animated"
+          style={{ animationDelay: `${i * 0.2}s` }}
         />
       ))}
     </svg>
@@ -118,7 +120,7 @@ function AgentCard({
         {/* Icon */}
         <div className="relative mb-5">
           <div
-            className="w-14 h-14 rounded-2xl flex items-center justify-center border transition-transform duration-300 group-hover:rotate-0"
+            className="w-14 h-14 rounded-2xl flex items-center justify-center border transition-all duration-300 group-hover:rotate-0 group-hover:scale-110"
             style={{
               backgroundColor: `${agent.color}15`,
               borderColor: `${agent.color}30`,
@@ -141,6 +143,17 @@ function AgentCard({
         <p className="text-text-muted text-sm leading-relaxed mb-4">
           {agent.description}
         </p>
+
+        {/* Active status indicator */}
+        <div className="flex items-center gap-2 mb-3">
+          <div className="relative flex items-center gap-1.5">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
+            </span>
+            <span className="text-xs text-success font-medium">Active</span>
+          </div>
+        </div>
 
         {/* Capabilities */}
         <div className="flex flex-wrap gap-2">
@@ -207,12 +220,13 @@ function AgentDetail({
       onClick={onClose}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade-in-scale" style={{ animationDuration: '0.3s', animationDelay: '0s' }} />
 
       {/* Modal */}
       <div
-        className="relative w-full max-w-lg rounded-3xl bg-surface border border-border p-8 overflow-hidden shadow-xl"
+        className="relative w-full max-w-lg rounded-3xl bg-surface border border-border p-8 overflow-hidden shadow-xl animate-fade-in-scale"
         onClick={(e) => e.stopPropagation()}
+        style={{ animationDuration: '0.4s' }}
       >
         {/* Background glow */}
         <div
@@ -225,7 +239,7 @@ function AgentDetail({
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center text-text-muted hover:text-foreground hover:bg-surface transition-all"
+          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center text-text-muted hover:text-foreground hover:bg-surface transition-all hover:scale-110"
         >
           <X className="w-4 h-4" />
         </button>
@@ -257,10 +271,10 @@ function AgentDetail({
               {agent.capabilities.map((cap, i) => (
                 <div
                   key={cap}
-                  className="flex items-center gap-3 rounded-xl bg-background border border-border p-3"
+                  className="flex items-center gap-3 rounded-xl bg-background border border-border p-3 hover:border-primary/30 transition-colors"
                 >
                   <div
-                    className="w-2 h-2 rounded-full shrink-0"
+                    className="w-2 h-2 rounded-full shrink-0 status-dot-pulse"
                     style={{ backgroundColor: agent.color }}
                   />
                   <span className="text-foreground text-sm font-medium">{cap}</span>
@@ -275,10 +289,10 @@ function AgentDetail({
               { label: 'Uptime', value: '99.9%' },
               { label: 'Avg Response', value: '<1s' },
               { label: 'Tasks/Day', value: '10K+' },
-            ].map((stat, i) => (
+            ].map((stat) => (
               <div
                 key={stat.label}
-                className="text-center rounded-xl bg-background border border-border p-3"
+                className="text-center rounded-xl bg-background border border-border p-3 hover:border-primary/20 transition-colors"
               >
                 <div className="text-foreground font-bold text-lg">{stat.value}</div>
                 <div className="text-text-muted text-xs">{stat.label}</div>

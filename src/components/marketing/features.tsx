@@ -112,8 +112,8 @@ export default function Features() {
               className={cn(
                 'px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-300',
                 activeTab === tab.id
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'text-text-muted hover:text-foreground hover:bg-surface border border-border'
+                  ? 'bg-primary text-white shadow-md shadow-primary/20 scale-105'
+                  : 'text-text-muted hover:text-foreground hover:bg-surface border border-border hover:border-primary/20 hover:shadow-sm'
               )}
             >
               {tab.label}
@@ -123,7 +123,7 @@ export default function Features() {
 
         {/* Features Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filteredFeatures.map((feature) => {
+          {filteredFeatures.map((feature, idx) => {
             const Icon = iconMap[feature.icon]
             if (!Icon) return null
 
@@ -131,7 +131,17 @@ export default function Features() {
               <div
                 key={feature.id}
                 className="feature-card group cursor-pointer"
+                style={{
+                  animationDelay: `${idx * 30}ms`,
+                }}
               >
+                {/* Hover glow overlay */}
+                <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                  style={{
+                    background: 'radial-gradient(circle at 50% 0%, rgba(52,82,255,0.06), transparent 70%)',
+                  }}
+                />
+
                 {/* Number badge */}
                 <div className="absolute top-4 right-4 text-xs font-mono text-text-muted/40 group-hover:text-primary/60 transition-colors duration-300">
                   {feature.number}
@@ -139,7 +149,7 @@ export default function Features() {
 
                 {/* Icon */}
                 <div className="relative mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center group-hover:bg-primary/15 group-hover:border-primary/30 transition-all duration-300">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center group-hover:bg-primary/15 group-hover:border-primary/30 group-hover:scale-110 transition-all duration-300">
                     <Icon className="w-6 h-6 text-primary" />
                   </div>
                 </div>

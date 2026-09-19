@@ -1,23 +1,20 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
   Users,
-  TrendingUp,
   DollarSign,
   GraduationCap,
   ArrowUpRight,
   Target,
   Headphones,
   Bot,
-  Brain,
-  Clock,
-  AlertTriangle,
   CheckCircle2,
   Calendar,
-  Zap,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 import { staggerContainer, staggerItem } from '@/lib/motion'
 import { cn, formatCurrency } from '@/lib/utils'
@@ -55,7 +52,32 @@ interface DashboardData {
     price: number
     _count: { enrollments: number }
   }>
+  topLeads: Array<{
+    id: string
+    name: string
+    email: string
+    score: number
+    status: string
+    source: string
+  }>
+  upcomingTasks: Array<{
+    id: string
+    title: string
+    status: string
+    priority: string
+    dueDate: string | null
+    assignedTo: { name: string } | null
+  }>
+  aiAgents: Array<{
+    id: string
+    name: string
+    type: string
+    tasks: number
+    success: number
+  }>
 }
+
+const PROGRAMS_PER_PAGE = 10
 
 function MiniSparkline({ data, color }: { data: number[]; color: string }) {
   const max = Math.max(...data)
@@ -86,22 +108,10 @@ const colorMap = {
   warning: { bg: 'bg-amber-50', text: 'text-amber-600', bar: 'from-amber-500 to-amber-400' },
 }
 
-const agentStatus = [
-  { name: 'Growth Agent', status: 'active', tasks: 147, success: 94.2 },
-  { name: 'Customer Success', status: 'active', tasks: 89, success: 91.8 },
-  { name: 'Learning Agent', status: 'active', tasks: 124, success: 96.1 },
-  { name: 'Finance Agent', status: 'active', tasks: 56, success: 98.5 },
-]
-
-const priorityActions = [
-  { id: 1, action: 'Follow up with high-value leads', priority: 'high', icon: Target },
-  { id: 2, action: 'Review declining programme engagement', priority: 'medium', icon: AlertTriangle },
-  { id: 3, action: 'Approve pending partnership proposals', priority: 'medium', icon: CheckCircle2 },
-]
-
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [programPage, setProgramPage] = useState(1)
   const { toast } = useToast()
   const router = useRouter()
   const today = new Date().toLocaleDateString('en-NG', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
@@ -114,13 +124,38 @@ export default function DashboardPage() {
       .finally(() => setLoading(false))
   }, [])
 
+  const totalPrograms = data?.activePrograms.length || 0
+  const totalProgramPages = Math.ceil(totalPrograms / PROGRAMS_PER_PAGE)
+
+  const paginatedPrograms = useMemo(() => {
+    const programs = data?.activePrograms || []
+    const start = (programPage - 1) * PROGRAMS_PER_PAGE
+    return programs.slice(start, start + PROGRAMS_PER_PAGE)
+  }, [data?.activePrograms, programPage])
+
+  const programStart = totalPrograms > 0 ? (programPage - 1) * PROGRAMS_PER_PAGE + 1 : 0
+  const programEnd = Math.min(programPage * PROGRAMS_PER_PAGE, totalPrograms)
+
+  const priorityActions = useMemo(() => {
+    if (!data) return []
+    const actions: Array<{ id: number; action: string; priority: string; icon: typeof Target }> = []
+    let id = 1
+    if (data.topLeads.length > 0) {
+      actions.push({ id: id++, action: `Follow up with ${data.topLeads[0].name} (top lead)`, priority: 'high', icon: Target })
+    }
+    if (data.counts.tickets > 0) {
+      actions.push({ id: id++, action: `Review ${data.counts.tickets} open support tickets`, priority: 'medium', icon: Headphones })
+    }
+    if (data.upcomingTasks.length > 0) {
+      actions.push({ id: id++, action: `Complete: ${data.upcomingTasks[0].title}`, priority: 'medium', icon: CheckCircle2 })
+    }
+    return actions
+  }, [data])
+
   const kpis = [
     {
       title: 'TOTAL CUSTOMERS',
       value: data?.counts.customers.toLocaleString() || '—',
-      change: '+12.8%',
-      changeType: 'up' as const,
-      vs: 'vs last month',
       icon: Users,
       color: 'primary',
       sparkline: [40, 45, 42, 50, 48, 55, 60, 58, 65, 70, 72, 78],
@@ -128,9 +163,6 @@ export default function DashboardPage() {
     {
       title: 'ACTIVE LEADS',
       value: data?.counts.leads.toLocaleString() || '—',
-      change: '+18.4%',
-      changeType: 'up' as const,
-      vs: 'vs last month',
       icon: Target,
       color: 'secondary',
       sparkline: [20, 25, 30, 28, 35, 40, 38, 45, 50, 55, 58, 62],
@@ -138,9 +170,6 @@ export default function DashboardPage() {
     {
       title: 'PROGRAMMES',
       value: data?.counts.programs.toString() || '—',
-      change: '+3',
-      changeType: 'up' as const,
-      vs: 'vs last month',
       icon: GraduationCap,
       color: 'primary',
       sparkline: [15, 16, 18, 17, 19, 20, 21, 20, 22, 23, 24, 24],
@@ -148,9 +177,6 @@ export default function DashboardPage() {
     {
       title: 'REVENUE',
       value: data ? formatCurrency(data.revenue) : '—',
-      change: '+18.4%',
-      changeType: 'up' as const,
-      vs: 'vs last month',
       icon: DollarSign,
       color: 'warning',
       sparkline: [30, 35, 32, 38, 42, 40, 45, 48, 50, 55, 58, 62],
@@ -158,9 +184,6 @@ export default function DashboardPage() {
     {
       title: 'OPEN TICKETS',
       value: data?.counts.tickets.toString() || '—',
-      change: '-3',
-      changeType: 'up' as const,
-      vs: 'vs last month',
       icon: Headphones,
       color: 'success',
       sparkline: [40, 42, 41, 43, 44, 43, 45, 46, 47, 48, 48, 48],
@@ -168,9 +191,6 @@ export default function DashboardPage() {
     {
       title: 'TEAM MEMBERS',
       value: data?.counts.staff.toString() || '—',
-      change: '+2',
-      changeType: 'up' as const,
-      vs: 'vs last month',
       icon: Users,
       color: 'primary',
       sparkline: [20, 22, 24, 25, 26, 27, 28, 28, 29, 30, 31, 32],
@@ -179,7 +199,6 @@ export default function DashboardPage() {
 
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
-      {/* Header */}
       <motion.div variants={staggerItem} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Good morning, Admin</h1>
@@ -191,7 +210,6 @@ export default function DashboardPage() {
         </div>
       </motion.div>
 
-      {/* KPI Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {kpis.map((kpi) => {
           const colors = colorMap[kpi.color as keyof typeof colorMap] || colorMap.primary
@@ -210,12 +228,6 @@ export default function DashboardPage() {
               <div className="flex items-end justify-between">
                 <div>
                   <p className="text-2xl font-bold tracking-tight">{loading ? '...' : kpi.value}</p>
-                  <div className="flex items-center gap-1.5 mt-1.5">
-                    <span className="text-xs font-medium text-emerald-600 flex items-center gap-0.5">
-                      <ArrowUpRight className="w-3 h-3" />{kpi.change}
-                    </span>
-                    <span className="text-xs text-text-muted">{kpi.vs}</span>
-                  </div>
                 </div>
                 <MiniSparkline data={kpi.sparkline} color={kpi.color} />
               </div>
@@ -225,14 +237,13 @@ export default function DashboardPage() {
         })}
       </div>
 
-      {/* AI Executive Briefing */}
       <motion.div variants={staggerItem}>
         <AIInsight title="AI Executive Briefing">
           <p className="leading-relaxed">
             CTAL is performing well. You have <strong>{data?.counts.customers || 0}</strong> customers,{' '}
             <strong>{data?.counts.leads || 0}</strong> active leads, and{' '}
             <strong>{data?.counts.programs || 0}</strong> programmes running.
-            {data?.revenue ? ` Total revenue collected is ${formatCurrency(data.revenue)}.` : ''}
+            {data?.revenue ? ` Total revenue collected is ${formatCurrency(data.revenue)}.` : ' No revenue recorded yet.'}
           </p>
           <div className="mt-4 space-y-2">
             {priorityActions.map((pa) => (
@@ -242,6 +253,9 @@ export default function DashboardPage() {
                 <Badge variant={pa.priority === 'high' ? 'error' : 'warning'} size="sm">{pa.priority}</Badge>
               </div>
             ))}
+            {priorityActions.length === 0 && (
+              <p className="text-sm text-text-muted">No priority actions at this time.</p>
+            )}
           </div>
           <div className="flex items-center gap-2 mt-4">
             <Button size="sm" variant="outline" onClick={() => router.push('/dashboard/leads')}>Review Actions</Button>
@@ -250,9 +264,7 @@ export default function DashboardPage() {
         </AIInsight>
       </motion.div>
 
-      {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent Leads */}
         <motion.div variants={staggerItem} className="lg:col-span-2">
           <div className="card bg-surface border border-border rounded-2xl p-6">
             <div className="flex items-center justify-between mb-5">
@@ -282,7 +294,6 @@ export default function DashboardPage() {
           </div>
         </motion.div>
 
-        {/* Active Programmes */}
         <motion.div variants={staggerItem}>
           <div className="card bg-surface border border-border rounded-2xl p-6">
             <div className="flex items-center justify-between mb-5">
@@ -292,18 +303,118 @@ export default function DashboardPage() {
             {loading ? (
               <div className="space-y-3">{[1, 2, 3].map((i) => <div key={i} className="skeleton h-12 rounded-lg" />)}</div>
             ) : (
-              <div className="space-y-3">
-                {(data?.activePrograms || []).map((prog) => (
-                  <div key={prog.id} className="p-3 rounded-xl bg-surface-light">
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="text-sm font-medium">{prog.name}</p>
-                      <span className="text-xs text-text-muted">{prog._count.enrollments} enrolled</span>
+              <>
+                <div className="space-y-3">
+                  {paginatedPrograms.map((prog) => (
+                    <div key={prog.id} className="p-3 rounded-xl bg-surface-light">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-sm font-medium">{prog.name}</p>
+                        <span className="text-xs text-text-muted">{prog._count.enrollments} enrolled</span>
+                      </div>
+                      <p className="text-xs text-text-muted">{prog.category}</p>
                     </div>
-                    <p className="text-xs text-text-muted">{prog.category}</p>
+                  ))}
+                  {totalPrograms === 0 && (
+                    <p className="text-sm text-text-muted text-center py-4">No programmes yet</p>
+                  )}
+                </div>
+                {totalPrograms > PROGRAMS_PER_PAGE && (
+                  <div className="flex items-center justify-between mt-4 pt-3 border-t border-border">
+                    <span className="text-xs text-text-muted">
+                      Showing {programStart}–{programEnd} of {totalPrograms}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        className="inline-flex items-center justify-center rounded-md text-xs font-medium border border-border bg-surface hover:bg-surface-muted disabled:opacity-50 disabled:pointer-events-none h-7 w-7"
+                        onClick={() => setProgramPage((p) => Math.max(1, p - 1))}
+                        disabled={programPage === 1}
+                      >
+                        <ChevronLeft className="w-3 h-3" />
+                      </button>
+                      <button
+                        className="inline-flex items-center justify-center rounded-md text-xs font-medium border border-border bg-surface hover:bg-surface-muted disabled:opacity-50 disabled:pointer-events-none h-7 w-7"
+                        onClick={() => setProgramPage((p) => Math.min(totalProgramPages, p + 1))}
+                        disabled={programPage === totalProgramPages}
+                      >
+                        <ChevronRight className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </motion.div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <motion.div variants={staggerItem}>
+          <div className="card bg-surface border border-border rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-sm font-semibold flex items-center gap-2">
+                <Target className="w-4 h-4 text-primary" />
+                Top Leads
+              </h2>
+              <Link href="/dashboard/leads" className="text-xs text-primary hover:text-primary-dark">View all</Link>
+            </div>
+            {loading ? (
+              <div className="space-y-3">{[1, 2, 3].map((i) => <div key={i} className="skeleton h-12 rounded-lg" />)}</div>
+            ) : (
+              <div className="space-y-2">
+                {(data?.topLeads || []).map((lead) => (
+                  <div key={lead.id} className="flex items-center justify-between p-3 rounded-xl bg-surface-light">
+                    <div>
+                      <p className="text-sm font-medium">{lead.name}</p>
+                      <p className="text-xs text-text-muted">{lead.source.replace('_', ' ')}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold text-primary">{lead.score}</p>
+                      <Badge variant={lead.status === 'WON' ? 'success' : lead.status === 'LOST' ? 'error' : 'primary'} size="sm">
+                        {lead.status.replace('_', ' ')}
+                      </Badge>
+                    </div>
                   </div>
                 ))}
-                {(!data?.activePrograms || data.activePrograms.length === 0) && (
-                  <p className="text-sm text-text-muted text-center py-4">No programmes yet</p>
+                {(!data?.topLeads || data.topLeads.length === 0) && (
+                  <p className="text-sm text-text-muted text-center py-4">No active leads</p>
+                )}
+              </div>
+            )}
+          </div>
+        </motion.div>
+
+        <motion.div variants={staggerItem}>
+          <div className="card bg-surface border border-border rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-sm font-semibold flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-primary" />
+                Upcoming Tasks
+              </h2>
+              <Link href="/dashboard/projects" className="text-xs text-primary hover:text-primary-dark">View all</Link>
+            </div>
+            {loading ? (
+              <div className="space-y-3">{[1, 2, 3].map((i) => <div key={i} className="skeleton h-12 rounded-lg" />)}</div>
+            ) : (
+              <div className="space-y-2">
+                {(data?.upcomingTasks || []).map((task) => (
+                  <div key={task.id} className="flex items-center justify-between p-3 rounded-xl bg-surface-light">
+                    <div>
+                      <p className="text-sm font-medium">{task.title}</p>
+                      <p className="text-xs text-text-muted">
+                        {task.assignedTo?.name || 'Unassigned'}
+                        {task.dueDate && ` • Due ${new Date(task.dueDate).toLocaleDateString('en-NG')}`}
+                      </p>
+                    </div>
+                    <Badge
+                      variant={task.priority === 'HIGH' || task.priority === 'URGENT' ? 'error' : task.priority === 'MEDIUM' ? 'warning' : 'primary'}
+                      size="sm"
+                    >
+                      {task.priority.toLowerCase()}
+                    </Badge>
+                  </div>
+                ))}
+                {(!data?.upcomingTasks || data.upcomingTasks.length === 0) && (
+                  <p className="text-sm text-text-muted text-center py-4">No upcoming tasks</p>
                 )}
               </div>
             )}
@@ -311,7 +422,6 @@ export default function DashboardPage() {
         </motion.div>
       </div>
 
-      {/* Second Row: AI Agent Status */}
       <motion.div variants={staggerItem}>
         <div className="card bg-surface border border-border rounded-2xl p-6">
           <div className="flex items-center justify-between mb-5">
@@ -322,8 +432,8 @@ export default function DashboardPage() {
             <Link href="/dashboard/ai" className="text-xs text-primary hover:text-primary-dark">View all</Link>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {agentStatus.map((agent) => (
-              <div key={agent.name} className="flex items-center justify-between p-3 rounded-xl bg-surface-light">
+            {(data?.aiAgents || []).map((agent) => (
+              <div key={agent.id} className="flex items-center justify-between p-3 rounded-xl bg-surface-light">
                 <div className="flex items-center gap-2.5">
                   <div className="w-2 h-2 rounded-full bg-emerald-500 animate-ai-pulse" />
                   <div>
@@ -334,6 +444,9 @@ export default function DashboardPage() {
                 <span className="text-xs font-medium text-emerald-600">{agent.success}%</span>
               </div>
             ))}
+            {(!data?.aiAgents || data.aiAgents.length === 0) && (
+              <p className="text-sm text-text-muted text-center py-4 col-span-full">No AI agents configured</p>
+            )}
           </div>
         </div>
       </motion.div>
