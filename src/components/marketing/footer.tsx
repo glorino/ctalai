@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Mail, Phone, MapPin, ArrowRight, CheckCircle2 } from 'lucide-react'
 import { COMPANY, SOCIAL_LINKS } from '@/lib/constants'
+import Image from 'next/image'
 
 const footerLinks = {
   product: [
@@ -94,9 +95,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-                <span className="text-white font-bold text-lg">C</span>
-              </div>
+              <Image src="/logo/Coreskills_logo.png" alt="CTAL AI" width={40} height={40} className="rounded-xl" />
               <span className="text-xl font-bold font-[family-name:var(--font-space-grotesk)] text-foreground">
                 CTAL AI
               </span>

@@ -1,13 +1,16 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowRight, Menu, X } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { NAVIGATION } from '@/lib/constants'
+import Button from '@/components/ui/button'
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const router = useRouter()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -48,19 +51,16 @@ export default function Navbar() {
 
           {/* CTA Buttons */}
           <div className="hidden md:flex items-center gap-4">
-            <Link
-              href="/dashboard"
+            <button
+              onClick={() => router.push('/dashboard')}
               className="text-text-muted hover:text-foreground transition-colors duration-200"
             >
               Sign In
-            </Link>
-            <Link
-              href="/contact"
-              className="btn-gradient px-5 py-2.5 rounded-lg text-white font-semibold flex items-center gap-2"
-            >
+            </button>
+            <Button onClick={() => router.push('/contact')}>
               Get Started
               <ArrowRight className="w-4 h-4" />
-            </Link>
+            </Button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -86,20 +86,16 @@ export default function Navbar() {
               </Link>
             ))}
             <div className="mt-4 pt-4 border-t border-border">
-              <Link
-                href="/dashboard"
-                className="block py-3 px-4 text-text-muted hover:text-foreground transition-colors"
-                onClick={() => setIsOpen(false)}
+              <button
+                onClick={() => { router.push('/dashboard'); setIsOpen(false) }}
+                className="block w-full py-3 px-4 text-text-muted hover:text-foreground hover:bg-surface-light transition-colors text-left"
               >
                 Sign In
-              </Link>
-              <Link
-                href="/contact"
-                className="block mt-2 btn-gradient py-3 px-4 rounded-lg text-white font-semibold text-center"
-                onClick={() => setIsOpen(false)}
-              >
+              </button>
+              <Button onClick={() => { router.push('/contact'); setIsOpen(false) }} className="mt-2 w-full">
                 Get Started
-              </Link>
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
             </div>
           </div>
         )}

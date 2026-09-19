@@ -1,13 +1,16 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import Navbar from '@/components/marketing/navbar'
 import Hero from '@/components/marketing/hero'
 import Features from '@/components/marketing/features'
 import Agents from '@/components/marketing/agents'
 import Journey from '@/components/marketing/journey'
 import Footer from '@/components/marketing/footer'
+import Button from '@/components/ui/button'
 
 export default function Home() {
+  const router = useRouter()
   return (
     <main className="min-h-screen bg-background">
       <Navbar />
@@ -28,18 +31,8 @@ export default function Home() {
             and scale without increasing costs.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href="/contact"
-              className="btn-gradient px-8 py-4 rounded-xl text-white font-semibold text-lg inline-flex items-center justify-center gap-2"
-            >
-              Start Your Transformation
-            </a>
-            <a
-              href="/dashboard"
-              className="px-8 py-4 rounded-xl border border-border text-foreground font-semibold text-lg hover:bg-surface transition-all duration-300 inline-flex items-center justify-center gap-2"
-            >
-              View Demo
-            </a>
+            <Button onClick={() => router.push('/contact')}>Start Your Transformation</Button>
+            <Button variant="outline" onClick={() => router.push('/dashboard')}>View Demo</Button>
           </div>
         </div>
       </section>
