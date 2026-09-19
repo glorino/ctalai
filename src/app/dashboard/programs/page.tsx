@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
@@ -20,6 +20,8 @@ import Card from '@/components/ui/card'
 import Progress from '@/components/ui/progress'
 import { useToast } from '@/components/ui/toast'
 import AIInsight from '@/components/ui/ai-insight'
+import Input from '@/components/ui/input'
+import Select from '@/components/ui/select'
 
 interface Program {
   id: string
@@ -39,13 +41,51 @@ export default function ProgrammesPage() {
   const { toast } = useToast()
   const router = useRouter()
 
-  useEffect(() => {
+  const [showForm, setShowForm] = useState(false)
+  const [formData, setFormData] = useState({ name: '', category: 'STRATEGY', duration: '', price: '', capacity: '' })
+  const [submitting, setSubmitting] = useState(false)
+
+  const fetchData = useCallback(() => {
     fetch('/api/programs')
       .then((res) => res.json())
       .then((d) => setPrograms(d.programs || []))
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => { fetchData() }, [fetchData])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!formData.name.trim()) { toast('Name is required', 'error'); return }
+    setSubmitting(true)
+    try {
+      const res = await fetch('/api/programs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          category: formData.category,
+          duration: formData.duration,
+          price: formData.price ? parseFloat(formData.price) : null,
+          capacity: formData.capacity ? parseInt(formData.capacity) : null,
+        }),
+      })
+      if (res.ok) {
+        toast('Programme created successfully', 'success')
+        setShowForm(false)
+        setFormData({ name: '', category: 'STRATEGY', duration: '', price: '', capacity: '' })
+        fetchData()
+      } else {
+        const data = await res.json()
+        toast(data.error || 'Failed to create programme', 'error')
+      }
+    } catch {
+      toast('Failed to create programme', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
@@ -54,7 +94,7 @@ export default function ProgrammesPage() {
           title="Programmes"
           description="Manage training programmes and cohorts"
           breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Programmes' }]}
-          actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => toast('Create programme form coming soon', 'info')}>New Programme</Button>}
+          actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowForm(true)}>New Programme</Button>}
         />
       </motion.div>
 
@@ -114,6 +154,26 @@ export default function ProgrammesPage() {
           <div className="col-span-2 text-center py-12 text-sm text-text-muted">No programmes found. Create your first programme.</div>
         )}
       </motion.div>
+
+      {showForm && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowForm(false)} />
+          <div className="relative w-full max-w-lg bg-surface border border-border rounded-2xl p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+            <h2 className="text-lg font-semibold mb-4">Create Programme</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Input label="Name" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Programme name" />
+              <Select label="Category" value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} options={[{ value: 'STRATEGY', label: 'Strategy' }, { value: 'TECHNOLOGY', label: 'Technology' }, { value: 'FINANCE', label: 'Finance' }, { value: 'MARKETING', label: 'Marketing' }, { value: 'LEADERSHIP', label: 'Leadership' }]} />
+              <Input label="Duration" value={formData.duration} onChange={(e) => setFormData({ ...formData, duration: e.target.value })} placeholder="e.g. 8 weeks" />
+              <Input label="Fee" type="number" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} placeholder="0.00" />
+              <Input label="Max Enrolments" type="number" value={formData.capacity} onChange={(e) => setFormData({ ...formData, capacity: e.target.value })} placeholder="0" />
+              <div className="flex gap-2 justify-end">
+                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
+                <Button type="submit" isLoading={submitting}>Create</Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </motion.div>
   )
 }

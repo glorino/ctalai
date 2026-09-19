@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { Brain, Plus, Calendar, Target, TrendingUp, Users, ChevronRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -14,6 +14,8 @@ import Card from '@/components/ui/card'
 import Progress from '@/components/ui/progress'
 import AIInsight from '@/components/ui/ai-insight'
 import { useToast } from '@/components/ui/toast'
+import Input from '@/components/ui/input'
+import Select from '@/components/ui/select'
 
 interface CoachingSession {
   id: string
@@ -43,13 +45,54 @@ export default function CoachingPage() {
   const router = useRouter()
   const { toast } = useToast()
 
-  useEffect(() => {
+  const [showForm, setShowForm] = useState(false)
+  const [formData, setFormData] = useState({ customerId: '', coachName: '', duration: '60', goal: '', scheduledAt: '' })
+  const [submitting, setSubmitting] = useState(false)
+  const [customers, setCustomers] = useState<{ id: string; name: string }[]>([])
+
+  const fetchData = useCallback(() => {
     fetch('/api/coaching')
       .then((res) => res.json())
       .then(setData)
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => { fetchData() }, [fetchData])
+
+  useEffect(() => {
+    fetch('/api/crm')
+      .then((res) => res.json())
+      .then((data) => setCustomers((data.customers || []).map((c: any) => ({ id: c.id, name: c.name }))))
+      .catch(console.error)
+  }, [])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!formData.customerId) { toast('Customer is required', 'error'); return }
+    if (!formData.goal.trim()) { toast('Goal is required', 'error'); return }
+    setSubmitting(true)
+    try {
+      const res = await fetch('/api/coaching', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      })
+      if (res.ok) {
+        toast('Coaching session created successfully', 'success')
+        setShowForm(false)
+        setFormData({ customerId: '', coachName: '', duration: '60', goal: '', scheduledAt: '' })
+        fetchData()
+      } else {
+        const data = await res.json()
+        toast(data.error || 'Failed to create coaching session', 'error')
+      }
+    } catch {
+      toast('Failed to create coaching session', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   const scheduledCount = data?.stats.find((s) => s.status === 'SCHEDULED')?._count || 0
   const completedCount = data?.stats.find((s) => s.status === 'COMPLETED')?._count || 0
@@ -61,7 +104,7 @@ export default function CoachingPage() {
           title="Coaching & Mentoring"
           description="Client coaching, goals, and progress tracking"
           breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Coaching' }]}
-          actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => toast('Add client form coming soon', 'info')}>Add Client</Button>}
+          actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowForm(true)}>Add Client</Button>}
         />
       </motion.div>
 
@@ -128,6 +171,26 @@ export default function CoachingPage() {
           </Card>
         </motion.div>
       </div>
+
+      {showForm && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowForm(false)} />
+          <div className="relative w-full max-w-lg bg-surface border border-border rounded-2xl p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+            <h2 className="text-lg font-semibold mb-4">Add Coaching Client</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Select label="Customer" value={formData.customerId} onChange={(e) => setFormData({ ...formData, customerId: e.target.value })} placeholder="Select customer" options={customers.map((c) => ({ value: c.id, label: c.name }))} />
+              <Input label="Coach" value={formData.coachName} onChange={(e) => setFormData({ ...formData, coachName: e.target.value })} placeholder="Coach name" />
+              <Input label="Duration (minutes)" type="number" value={formData.duration} onChange={(e) => setFormData({ ...formData, duration: e.target.value })} placeholder="60" />
+              <Input label="Goal" required value={formData.goal} onChange={(e) => setFormData({ ...formData, goal: e.target.value })} placeholder="Coaching goal" />
+              <Input label="Scheduled At" type="datetime-local" value={formData.scheduledAt} onChange={(e) => setFormData({ ...formData, scheduledAt: e.target.value })} />
+              <div className="flex gap-2 justify-end">
+                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
+                <Button type="submit" isLoading={submitting}>Create</Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </motion.div>
   )
 }

@@ -22,3 +22,23 @@ export async function GET() {
     return NextResponse.json({ error: 'Failed to fetch cohorts' }, { status: 500 })
   }
 }
+
+export async function POST(request: Request) {
+  try {
+    const data = await request.json()
+    const cohort = await prisma.cohort.create({
+      data: {
+        name: data.name,
+        programId: data.programId,
+        startDate: new Date(data.startDate),
+        endDate: data.endDate ? new Date(data.endDate) : null,
+        maxStudents: data.maxStudents ? parseInt(data.maxStudents) : null,
+        status: data.status || 'UPCOMING',
+      },
+    })
+    return NextResponse.json(cohort, { status: 201 })
+  } catch (error) {
+    console.error('Cohort create error:', error)
+    return NextResponse.json({ error: 'Failed to create cohort' }, { status: 500 })
+  }
+}

@@ -24,3 +24,24 @@ export async function GET() {
     return NextResponse.json({ error: 'Failed to fetch opportunities' }, { status: 500 })
   }
 }
+
+export async function POST(request: Request) {
+  try {
+    const data = await request.json()
+    const opportunity = await prisma.opportunity.create({
+      data: {
+        name: data.name,
+        value: data.value ? parseFloat(data.value) : null,
+        stage: data.stage || 'QUALIFICATION',
+        probability: data.probability ? parseInt(data.probability) : 0,
+        notes: data.notes,
+        leadId: data.leadId || null,
+        customerId: data.customerId || null,
+      },
+    })
+    return NextResponse.json(opportunity, { status: 201 })
+  } catch (error) {
+    console.error('Opportunity create error:', error)
+    return NextResponse.json({ error: 'Failed to create opportunity' }, { status: 500 })
+  }
+}

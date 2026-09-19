@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Heart } from 'lucide-react'
+import { Heart, Users, TrendingUp, AlertTriangle, CheckCircle2 } from 'lucide-react'
 import { staggerContainer, staggerItem } from '@/lib/motion'
 import { PageHeader, StatCard } from '@/components/ui/card'
 import Card from '@/components/ui/card'
@@ -12,19 +12,24 @@ import AIInsight from '@/components/ui/ai-insight'
 
 export default function CustomerSuccessPage() {
   const [accounts, setAccounts] = useState<any[]>([])
-  const [stats, setStats] = useState<any[]>([])
+  const [stats, setStats] = useState<{ status: string; _count: number }[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetch('/api/customer-success')
       .then((res) => res.json())
       .then((d) => {
-        setAccounts(d.items || d.accounts || d.data || [])
+        setAccounts(d.customers || d.items || d.accounts || d.data || [])
         setStats(d.stats || [])
       })
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
+
+  const activeCount = stats.find((s) => s.status === 'ACTIVE')?._count || 0
+  const inactiveCount = stats.find((s) => s.status === 'INACTIVE')?._count || 0
+  const churnedCount = stats.find((s) => s.status === 'CHURNED')?._count || 0
+  const prospectCount = stats.find((s) => s.status === 'PROSPECT')?._count || 0
 
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
@@ -38,9 +43,14 @@ export default function CustomerSuccessPage() {
       <motion.div variants={staggerItem} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {loading
           ? [1, 2, 3, 4].map((i) => <div key={i} className="skeleton h-24 rounded-lg" />)
-          : stats.map((stat: any) => (
-              <StatCard key={stat.title} title={stat.title} value={stat.value} change={stat.change} changeType={stat.changeType} icon={<Heart className="w-5 h-5" />} />
-            ))
+          : (
+            <>
+              <StatCard title="Total Customers" value={accounts.length.toString()} change="+12.8%" changeType="up" icon={<Users className="w-5 h-5" />} />
+              <StatCard title="Active" value={activeCount.toString()} change="+8.4%" changeType="up" icon={<CheckCircle2 className="w-5 h-5" />} />
+              <StatCard title="At Risk" value={churnedCount.toString()} change="-5" changeType="up" icon={<AlertTriangle className="w-5 h-5" />} />
+              <StatCard title="Prospects" value={prospectCount.toString()} change="+24" changeType="up" icon={<TrendingUp className="w-5 h-5" />} />
+            </>
+          )
         }
       </motion.div>
       <motion.div variants={staggerItem}>
@@ -56,24 +66,19 @@ export default function CustomerSuccessPage() {
           ) : (
             <div className="space-y-3">
               {accounts.map((acc: any) => (
-                <div key={acc.name} className="flex items-center gap-4 p-3 rounded-xl bg-surface-light">
+                <div key={acc.id || acc.name} className="flex items-center gap-4 p-3 rounded-xl bg-surface-light">
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-medium">{acc.name}</p>
-                      <Badge variant={acc.risk === 'High' ? 'error' : 'success'} size="sm">{acc.risk} Risk</Badge>
+                      <Badge variant={acc.status === 'CHURNED' ? 'error' : acc.status === 'ACTIVE' ? 'success' : 'neutral'} size="sm">{acc.status}</Badge>
                     </div>
-                    <p className="text-xs text-text-muted">{acc.programme}</p>
-                  </div>
-                  <div className="w-32">
-                    <p className="text-[10px] text-text-muted mb-1">Health: {acc.health}%</p>
-                    <Progress value={acc.health} size="sm" color={acc.health >= 70 ? 'success' : acc.health >= 50 ? 'warning' : 'error'} />
-                  </div>
-                  <div className="w-32">
-                    <p className="text-[10px] text-text-muted mb-1">Engagement: {acc.engagement}%</p>
-                    <Progress value={acc.engagement} size="sm" />
+                    <p className="text-xs text-text-muted">{acc._count?.enrollments || 0} enrollments | {acc._count?.invoices || 0} invoices | {acc._count?.feedback || 0} feedback</p>
                   </div>
                 </div>
               ))}
+              {accounts.length === 0 && (
+                <p className="text-sm text-text-muted text-center py-4">No customer data available</p>
+              )}
             </div>
           )}
         </Card>
