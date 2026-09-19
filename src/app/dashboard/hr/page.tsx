@@ -11,6 +11,8 @@ import Button from '@/components/ui/button'
 import Avatar from '@/components/ui/avatar'
 import Card from '@/components/ui/card'
 import Progress from '@/components/ui/progress'
+import Input from '@/components/ui/input'
+import Select from '@/components/ui/select'
 import { useToast } from '@/components/ui/toast'
 
 interface Staff {
@@ -40,16 +42,49 @@ const statusVariant: Record<string, 'success' | 'warning' | 'error'> = {
 export default function HRPage() {
   const [data, setData] = useState<HRData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [formData, setFormData] = useState({ name: '', email: '', role: 'STAFF', department: '', phone: '' })
+  const [submitting, setSubmitting] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
 
-  useEffect(() => {
+  const fetchData = () => {
+    setLoading(true)
     fetch('/api/hr')
       .then((res) => res.json())
       .then(setData)
       .catch(console.error)
       .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    fetchData()
   }, [])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSubmitting(true)
+    try {
+      const res = await fetch('/api/hr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      })
+      if (res.ok) {
+        toast('Created successfully', 'success')
+        setShowForm(false)
+        setFormData({ name: '', email: '', role: 'STAFF', department: '', phone: '' })
+        fetchData()
+      } else {
+        const data = await res.json()
+        toast(data.error || 'Failed to create', 'error')
+      }
+    } catch {
+      toast('Failed to create', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   const activeCount = data?.stats.find((s) => s.status === 'ACTIVE')?._count || 0
   const onLeaveCount = data?.stats.find((s) => s.status === 'ON_LEAVE')?._count || 0
@@ -61,7 +96,7 @@ export default function HRPage() {
           title="HR & People"
           description="Employee management, performance, and recruitment"
           breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'HR' }]}
-          actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => toast('Add employee form coming soon', 'info')}>Add Employee</Button>}
+          actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowForm(true)}>Add Employee</Button>}
         />
       </motion.div>
 
@@ -105,6 +140,31 @@ export default function HRPage() {
           )}
         </Card>
       </motion.div>
+
+      {showForm && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowForm(false)} />
+          <div className="relative w-full max-w-lg bg-surface border border-border rounded-2xl p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+            <h2 className="text-lg font-semibold mb-4">Add Employee</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Input label="Name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
+              <Input label="Email" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} required />
+              <Select label="Role" value={formData.role} onChange={(e) => setFormData({ ...formData, role: e.target.value })} options={[
+                { value: 'ADMIN', label: 'Admin' },
+                { value: 'MANAGER', label: 'Manager' },
+                { value: 'STAFF', label: 'Staff' },
+                { value: 'COORDINATOR', label: 'Coordinator' },
+              ]} />
+              <Input label="Department" value={formData.department} onChange={(e) => setFormData({ ...formData, department: e.target.value })} />
+              <Input label="Phone" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
+              <div className="flex gap-2 justify-end">
+                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
+                <Button type="submit" isLoading={submitting}>Create</Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </motion.div>
   )
 }

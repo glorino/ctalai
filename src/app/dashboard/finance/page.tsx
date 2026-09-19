@@ -135,7 +135,7 @@ export default function FinancePage() {
                 URL.revokeObjectURL(url)
                 toast('Exported successfully', 'success')
               }}>Export</Button>
-              <Button size="sm" leftIcon={<Plus className="w-4 h-4" />} onClick={() => toast('Create invoice form coming soon', 'info')}>Create Invoice</Button>
+              <Button size="sm" leftIcon={<Plus className="w-4 h-4" />} onClick={() => window.location.href = '/dashboard/invoices'}>Create Invoice</Button>
             </div>
           }
         />

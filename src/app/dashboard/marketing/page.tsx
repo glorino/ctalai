@@ -43,7 +43,7 @@ export default function MarketingPage() {
           title="Marketing"
           description="Campaigns, audiences, and marketing analytics"
           breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Marketing' }]}
-          actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => toast('Create campaign form coming soon', 'info')}>New Campaign</Button>}
+          actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => window.location.href = '/dashboard/campaigns'}>New Campaign</Button>}
         />
       </motion.div>
 

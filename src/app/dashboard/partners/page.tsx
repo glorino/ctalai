@@ -12,6 +12,8 @@ import Button from '@/components/ui/button'
 import Avatar from '@/components/ui/avatar'
 import Card from '@/components/ui/card'
 import AIInsight from '@/components/ui/ai-insight'
+import Input from '@/components/ui/input'
+import Select from '@/components/ui/select'
 import { useToast } from '@/components/ui/toast'
 
 interface PartnerData {
@@ -35,16 +37,49 @@ const statusVariant: Record<string, 'success' | 'warning' | 'primary' | 'neutral
 export default function PartnersPage() {
   const [partners, setPartners] = useState<PartnerData[]>([])
   const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [formData, setFormData] = useState({ name: '', type: 'ACADEMIC', contactPerson: '', email: '', phone: '' })
+  const [submitting, setSubmitting] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
 
-  useEffect(() => {
+  const fetchData = () => {
+    setLoading(true)
     fetch('/api/partners')
       .then((res) => res.json())
       .then((d) => setPartners(d.partners || d.data || []))
       .catch(console.error)
       .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    fetchData()
   }, [])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSubmitting(true)
+    try {
+      const res = await fetch('/api/partners', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      })
+      if (res.ok) {
+        toast('Created successfully', 'success')
+        setShowForm(false)
+        setFormData({ name: '', type: 'ACADEMIC', contactPerson: '', email: '', phone: '' })
+        fetchData()
+      } else {
+        const data = await res.json()
+        toast(data.error || 'Failed to create', 'error')
+      }
+    } catch {
+      toast('Failed to create', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   const totalPartners = partners.length
   const activePartners = partners.filter(p => p.status === 'ACTIVE').length
@@ -58,7 +93,7 @@ export default function PartnersPage() {
           title="Partnerships"
           description="Partner management, agreements, and opportunities"
           breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Partners' }]}
-          actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => toast('Add partner form coming soon', 'info')}>Add Partner</Button>}
+          actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowForm(true)}>Add Partner</Button>}
         />
       </motion.div>
 
@@ -111,6 +146,30 @@ export default function PartnersPage() {
           )}
         </Card>
       </motion.div>
+
+      {showForm && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowForm(false)} />
+          <div className="relative w-full max-w-lg bg-surface border border-border rounded-2xl p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+            <h2 className="text-lg font-semibold mb-4">Add Partner</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Input label="Name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
+              <Select label="Type" value={formData.type} onChange={(e) => setFormData({ ...formData, type: e.target.value })} options={[
+                { value: 'ACADEMIC', label: 'Academic' },
+                { value: 'CORPORATE', label: 'Corporate' },
+                { value: 'GOVERNMENT', label: 'Government' },
+              ]} />
+              <Input label="Contact Person" value={formData.contactPerson} onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })} />
+              <Input label="Email" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+              <Input label="Phone" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
+              <div className="flex gap-2 justify-end">
+                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
+                <Button type="submit" isLoading={submitting}>Create</Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </motion.div>
   )
 }

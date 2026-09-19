@@ -11,6 +11,8 @@ import Badge from '@/components/ui/badge'
 import Button from '@/components/ui/button'
 import Card from '@/components/ui/card'
 import Progress from '@/components/ui/progress'
+import Input from '@/components/ui/input'
+import Select from '@/components/ui/select'
 import { useToast } from '@/components/ui/toast'
 
 interface Project {
@@ -38,16 +40,49 @@ const statusVariant: Record<string, 'primary' | 'warning' | 'success' | 'neutral
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [formData, setFormData] = useState({ name: '', description: '', status: 'PLANNING', priority: 'MEDIUM', dueDate: '' })
+  const [submitting, setSubmitting] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
 
-  useEffect(() => {
+  const fetchData = () => {
+    setLoading(true)
     fetch('/api/projects')
       .then((res) => res.json())
       .then((d) => setProjects(d.projects || []))
       .catch(console.error)
       .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    fetchData()
   }, [])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSubmitting(true)
+    try {
+      const res = await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...formData, dueDate: formData.dueDate || null }),
+      })
+      if (res.ok) {
+        toast('Created successfully', 'success')
+        setShowForm(false)
+        setFormData({ name: '', description: '', status: 'PLANNING', priority: 'MEDIUM', dueDate: '' })
+        fetchData()
+      } else {
+        const data = await res.json()
+        toast(data.error || 'Failed to create', 'error')
+      }
+    } catch {
+      toast('Failed to create', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   const activeProjects = projects.filter((p) => p.status === 'ACTIVE')
   const openTasks = projects.reduce((s, p) => s + p.tasks.filter((t) => t.status !== 'DONE').length, 0)
@@ -60,7 +95,7 @@ export default function ProjectsPage() {
           title="Projects"
           description="Project management and task tracking"
           breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: 'Projects' }]}
-          actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => toast('Create project form coming soon', 'info')}>New Project</Button>}
+          actions={<Button leftIcon={<Plus className="w-4 h-4" />} onClick={() => setShowForm(true)}>New Project</Button>}
         />
       </motion.div>
 
@@ -108,6 +143,34 @@ export default function ProjectsPage() {
           )}
         </Card>
       </motion.div>
+
+      {showForm && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowForm(false)} />
+          <div className="relative w-full max-w-lg bg-surface border border-border rounded-2xl p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+            <h2 className="text-lg font-semibold mb-4">Create Project</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Input label="Name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
+              <Input label="Description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
+              <Select label="Status" value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} options={[
+                { value: 'PLANNING', label: 'Planning' },
+                { value: 'IN_PROGRESS', label: 'In Progress' },
+                { value: 'COMPLETED', label: 'Completed' },
+              ]} />
+              <Select label="Priority" value={formData.priority} onChange={(e) => setFormData({ ...formData, priority: e.target.value })} options={[
+                { value: 'LOW', label: 'Low' },
+                { value: 'MEDIUM', label: 'Medium' },
+                { value: 'HIGH', label: 'High' },
+              ]} />
+              <Input label="Due Date" type="date" value={formData.dueDate} onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })} />
+              <div className="flex gap-2 justify-end">
+                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
+                <Button type="submit" isLoading={submitting}>Create</Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </motion.div>
   )
 }
