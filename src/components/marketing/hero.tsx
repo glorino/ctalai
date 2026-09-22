@@ -32,7 +32,7 @@ export default function Hero() {
           style={{
             position: 'absolute',
             inset: 0,
-            background: 'linear-gradient(135deg, var(--background) 0%, rgba(52,82,255,0.04) 25%, var(--surface-light) 50%, rgba(255,16,83,0.04) 75%, var(--background) 100%)',
+            background: 'linear-gradient(135deg, #ff1053 0%, #3452ff 25%, #ff1053 50%, #3452ff 75%, #ff1053 100%)',
             backgroundSize: '400% 400%',
           }}
         />
@@ -57,13 +57,14 @@ export default function Hero() {
               borderRadius: 9999,
               padding: '8px 18px',
               fontSize: 14,
-              color: 'var(--text-muted)',
+              color: 'var(--primary)',
               boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+              background: 'linear-gradient(135deg, var(--primary), var(--secondary))',
             }}
           >
             <span style={{ position: 'relative', display: 'flex', width: 8, height: 8 }}>
-              <span style={{ position: 'absolute', display: 'inline-flex', width: '100%', height: '100%', borderRadius: '50%', background: 'var(--primary)', opacity: 0.75, animation: 'ping 1s cubic-bezier(0,0,0.2,1) infinite' }} />
-              <span style={{ position: 'relative', display: 'inline-flex', width: 8, height: 8, borderRadius: '50%', background: 'var(--primary)' }} />
+              <span style={{ position: 'absolute', display: 'inline-flex', width: '100%', height: '100%', borderRadius: '50%', background: '#ff1053', opacity: 0.75, animation: 'ping 1s cubic-bezier(0,0,0.2,1) infinite' }} />
+              <span style={{ position: 'relative', display: 'inline-flex', width: 8, height: 8, borderRadius: '50%', background: '#ff1053' }} />
             </span>
             Powered by Next-Gen AI
           </span>
